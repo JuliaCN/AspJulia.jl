@@ -20,8 +20,8 @@
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "test", "runtests.jl"), "using Test\nusing JSON\n@test true\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
@@ -51,8 +51,8 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-011", rendered)
@@ -76,8 +76,8 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing JSON\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-009", rendered)
@@ -104,8 +104,8 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing JuliaSyntax\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-010", rendered)
@@ -134,7 +134,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing Arrow\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
     source_findings = filter(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-010", report.findings)
 
     @test [finding.summary for finding in source_findings] == [
@@ -158,8 +158,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
@@ -175,8 +175,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "test", "helpers.jl"), "value = 1\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-003", rendered)
@@ -194,8 +194,8 @@ end
     tests = join(fill("@test true", 81), "\n")
     write(joinpath(root, "test", "runtests.jl"), "using Test\n$(tests)\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-004", rendered)
@@ -203,7 +203,7 @@ end
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-004", report.findings) == 1
 end
 
-@testset "project runner advises harness test profile hook" begin
+@testset "ASP Julia advises its test profile hook" begin
     root = mktempdir()
     write(
         joinpath(root, "Project.toml"),
@@ -230,16 +230,16 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "test", "runtests.jl"), "using Test\n@test true\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R014", rendered)
-    @test occursin("Pkg.test lacks the harness verification profile", rendered)
+    @test occursin("Pkg.test lacks the ASP Julia verification profile", rendered)
     @test length(AspJulia.advisory_findings(report)) == 1
 end
 
-@testset "project runner accepts harness test profile hook" begin
+@testset "ASP Julia accepts its test profile hook" begin
     root = mktempdir()
     write(
         joinpath(root, "Project.toml"),
@@ -271,11 +271,11 @@ end
         using Test
 
         @test true
-        assert_julia_project_harness_test_profile_clean(dirname(@__DIR__))
+        assert_asp_julia_test_profile_clean(dirname(@__DIR__))
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -287,11 +287,11 @@ end
     mkpath(joinpath(root, "src"))
     mkpath(joinpath(root, "lib"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
     push!(config.source_dir_names, "lib")
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-005", rendered)
@@ -299,7 +299,7 @@ end
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-005", report.findings) == 1
 
     config.source_path_explanations["lib"] = "todo"
-    placeholder_report = run_julia_project_harness(root; config)
+    placeholder_report = run_asp_julia_workspace(root; config)
 
     @test !AspJulia.is_clean(placeholder_report)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-005", placeholder_report.findings) == 1
@@ -321,7 +321,7 @@ end
     write(joinpath(root, "lib", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "src", "Stale.jl"), "module Stale\nusing MissingPkg\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test report.project_resolution.source_paths == [joinpath(root, "lib")]
@@ -333,7 +333,7 @@ end
     mkpath(joinpath(root, "src"))
     mkpath(joinpath(root, "test"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
-    default_config = default_julia_harness_config()
+    default_config = default_asp_julia_config()
     config = AspJuliaConfig(
         copy(default_config.ignored_dir_names),
         copy(default_config.blocking_severities),
@@ -352,8 +352,8 @@ end
         default_config.agent_advice_allow_explanation,
     )
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-006", rendered)
@@ -367,8 +367,8 @@ end
     write(joinpath(root, "Project.toml"), "version = \"0.1.0\"\n")
     write(joinpath(root, "src", "NoName.jl"), "value() = 1\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-001", rendered)
@@ -391,8 +391,8 @@ end
     )
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test !isnothing(report.project_resolution.project_parse_error)
@@ -409,8 +409,8 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Different\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-007", rendered)

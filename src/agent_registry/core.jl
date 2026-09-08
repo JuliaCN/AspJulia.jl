@@ -27,7 +27,7 @@ function julia_evidence_method_descriptors()
         Dict{String,Any}(
             "method" => "evidence/graph",
             "command" => "evidence",
-            "input" => "provider project root",
+            "input" => "workspace root",
             "outputSchemaIds" => ["agent.semantic-protocols.semantic-evidence-graph"],
             "supportsCompact" => true,
             "supportsJson" => true,
@@ -35,7 +35,7 @@ function julia_evidence_method_descriptors()
         Dict{String,Any}(
             "method" => "evidence/analyze",
             "command" => "evidence",
-            "input" => "provider project root",
+            "input" => "workspace root",
             "outputSchemaIds" => [
                 "agent.semantic-protocols.semantic-graph-turbo-request",
             ],

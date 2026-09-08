@@ -1,5 +1,5 @@
 @testset "default config ignores local environment directories" begin
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
 
     @test ".devenv" in config.ignored_dir_names
 end
@@ -18,7 +18,7 @@ function write_config_project(root::AbstractString)
 end
 
 function config_with_agent_advice_allow_explanation(explanation::Union{Nothing,String})
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
     AspJuliaConfig(
         copy(config.ignored_dir_names),
         copy(config.blocking_severities),
@@ -41,11 +41,11 @@ end
 @testset "config escape requires disabled rule explanation" begin
     root = mktempdir()
     write_config_project(root)
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
     push!(config.disabled_rules, "JULIA-AGENT-PROJECT-014")
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-014", rendered)
@@ -53,11 +53,11 @@ end
 
     config.disabled_rule_explanations["JULIA-AGENT-PROJECT-014"] =
         "todo add real explanation after the migration"
-    placeholder_report = run_julia_project_harness(root; config)
+    placeholder_report = run_asp_julia_workspace(root; config)
     @test !AspJulia.is_clean(placeholder_report)
 
     config.disabled_rule_explanations["JULIA-AGENT-PROJECT-014"] = "local policy migration under review"
-    clean_report = run_julia_project_harness(root; config)
+    clean_report = run_asp_julia_workspace(root; config)
 
     @test AspJulia.is_clean(clean_report)
 end
@@ -65,23 +65,23 @@ end
 @testset "config escape requires severity override explanation" begin
     root = mktempdir()
     write_config_project(root)
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
     config.rule_severity_overrides["JULIA-AGENT-PROJECT-002"] = AspJulia.Info
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("severity is overridden", rendered)
 
     config.rule_severity_override_explanations["JULIA-AGENT-PROJECT-002"] = "later"
-    placeholder_report = run_julia_project_harness(root; config)
+    placeholder_report = run_asp_julia_workspace(root; config)
     @test !AspJulia.is_clean(placeholder_report)
 
     config.rule_severity_override_explanations["JULIA-AGENT-PROJECT-002"] =
         "temporary package layout migration"
-    clean_report = run_julia_project_harness(root; config)
+    clean_report = run_asp_julia_workspace(root; config)
 
     @test AspJulia.is_clean(clean_report)
 end
@@ -89,22 +89,22 @@ end
 @testset "config escape requires blocking severity explanation" begin
     root = mktempdir()
     write_config_project(root)
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
     delete!(config.blocking_severities, AspJulia.Warning)
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("Blocking severity `warning` is removed", rendered)
 
     config.blocking_severity_explanations["warning"] = "n/a"
-    placeholder_report = run_julia_project_harness(root; config)
+    placeholder_report = run_asp_julia_workspace(root; config)
     @test !AspJulia.is_clean(placeholder_report)
 
     config.blocking_severity_explanations["warning"] = "collect warnings during staged rollout"
-    clean_report = run_julia_project_harness(root; config)
+    clean_report = run_asp_julia_workspace(root; config)
 
     @test AspJulia.is_clean(clean_report)
 end
@@ -114,8 +114,8 @@ end
     write_config_project(root)
     config = config_with_agent_advice_allow_explanation("   ")
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-014", rendered)
@@ -129,8 +129,8 @@ end
         "todo add real advisory exception explanation after release",
     )
 
-    report = run_julia_project_harness(root; config)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root; config)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-014", rendered)
@@ -166,9 +166,9 @@ end
     mkpath(joinpath(root, "lib"))
     write(joinpath(root, "lib", "ConfigExample.jl"), "module ConfigExample\nend\n")
 
-    config = AspJulia.project_toml_harness_config(
+    config = AspJulia.asp_julia_project_config(
         root,
-        default_julia_harness_config(),
+        default_asp_julia_config(),
     )
 
     @test config.include_tests == false
@@ -180,7 +180,7 @@ end
     @test config.agent_advice_allow_explanation ==
           "stage public API documentation while landing Project.toml policy"
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
     @test AspJulia.is_clean(report)
 end
 
@@ -200,8 +200,8 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "ConfigExample.jl"), "module ConfigExample\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-014", rendered)
@@ -233,7 +233,7 @@ end
         """,
     )
 
-    profile = assert_julia_project_harness_test_profile_clean(root; advice_io = nothing)
+    profile = assert_asp_julia_test_profile_clean(root; advice_io = nothing)
 
     @test AspJulia.is_clean(profile.report)
     @test !isempty(AspJulia.advisory_findings(profile.report))
@@ -264,7 +264,7 @@ end
         """,
     )
 
-    report = assert_julia_project_harness_pkg_test_clean(root)
+    report = assert_asp_julia_pkg_test_clean(root)
 
     @test AspJulia.is_clean(report)
     @test !isempty(AspJulia.advisory_findings(report))
@@ -274,9 +274,9 @@ end
     root = mktempdir()
     write_config_project(root)
 
-    config = AspJulia.project_toml_harness_config(
+    config = AspJulia.asp_julia_project_config(
         root,
-        default_julia_harness_config(),
+        default_asp_julia_config(),
     )
 
     @test isnothing(config.agent_advice_allow_explanation)

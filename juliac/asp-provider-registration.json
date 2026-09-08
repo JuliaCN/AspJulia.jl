@@ -3,7 +3,7 @@
   "languageId": "julia",
   "providerId": "asp-julia",
   "namespace": "agent.semantic-protocols.languages.julia.asp-julia",
-  "displayName": "Julia",
+  "displayName": "ASP Julia",
   "binary": "asp-julia",
   "execution": "provider",
   "providerDescriptor": {

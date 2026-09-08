@@ -110,7 +110,7 @@ Base.@kwdef mutable struct JuliaVerificationResponsibilitySignals
 end
 
 function project_responsibility_profile_candidate(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     signals = julia_verification_responsibility_signals(scope, parsed_files)
@@ -127,7 +127,7 @@ function project_responsibility_profile_candidate(
 end
 
 function julia_verification_responsibility_signals(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     signals = JuliaVerificationResponsibilitySignals()
@@ -148,7 +148,7 @@ function julia_verification_responsibility_signals(
 end
 
 function runtime_direct_dependency_roots(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     stdlib_roots::Set{String},
 )
     Set(
@@ -190,7 +190,7 @@ end
 
 function collect_algorithm_shape_responsibility_signals!(
     signals::JuliaVerificationResponsibilitySignals,
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
 )
     is_test_path(scope, parsed.report.path) && return signals
@@ -218,7 +218,7 @@ function algorithm_shape_labels(function_fact::JuliaFunctionSyntax)
 end
 
 function algorithm_shape_owner_label(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
     function_fact::JuliaFunctionSyntax,
     labels::Vector{String},

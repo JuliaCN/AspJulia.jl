@@ -1,5 +1,5 @@
 function extension_entrypoint_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     rules::Dict{String,AspJuliaRule},
 )
     findings = AspJuliaFinding[]
@@ -19,7 +19,7 @@ function extension_entrypoint_findings(
 end
 
 function extension_dependency_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     rules::Dict{String,AspJuliaRule},
 )
     stdlib_roots = julia_stdlib_import_roots()
@@ -50,13 +50,13 @@ function extension_entrypoint_candidates(project_root::AbstractString, name::Abs
     ]
 end
 
-function extension_import_roots(scope::JuliaProjectHarnessScope, path::AbstractString)
+function extension_import_roots(scope::AspJuliaWorkspaceScope, path::AbstractString)
     extension_name = extension_name_for_path(scope, path)
     isnothing(extension_name) && return Set{String}()
     Set(get(scope.extensions, extension_name, String[]))
 end
 
-function extension_name_for_path(scope::JuliaProjectHarnessScope, path::AbstractString)
+function extension_name_for_path(scope::AspJuliaWorkspaceScope, path::AbstractString)
     for name in keys(scope.extensions)
         if any(
             candidate -> normpath(path) == normpath(candidate),

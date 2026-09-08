@@ -28,6 +28,6 @@ function julia_verification_receipt_template_record(
 end
 
 """Render a JSON receipt template that agents can fill and submit for review."""
-function render_julia_verification_receipt_template(index::JuliaVerificationTaskIndex)
+function render_asp_julia_verification_receipt_template(index::JuliaVerificationTaskIndex)
     JSON.json(julia_verification_receipt_template(index))
 end

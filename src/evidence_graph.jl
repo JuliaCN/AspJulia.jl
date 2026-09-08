@@ -40,7 +40,7 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
             "kind" => "invariant-candidate",
             "label" => "Julia provider behavior needs executable evidence",
             "ownerPath" => owner_path,
-            "candidateId" => "julia.evidence.project-harness",
+            "candidateId" => "julia.evidence.asp-julia",
             "status" => "needs-injection",
             "summary" =>
                 "Project-level Julia policy and semantic search behavior should be linked to verification receipts.",
@@ -76,7 +76,7 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
             "summary" => "run-receipt",
             "fields" => Dict{String,Any}(
                 "priority" => "p0",
-                "targetId" => "julia.evidence.project-harness",
+                "targetId" => "julia.evidence.asp-julia",
             ),
         ),
     ]
@@ -118,7 +118,7 @@ function render_julia_evidence_graph(packet::Dict{String,Any})
 end
 
 """Render the provider-owned Julia evidence graph JSON packet for agent receipts."""
-function render_julia_evidence_graph_json(project_root::AbstractString=pwd())
+function render_asp_julia_evidence_graph_json(project_root::AbstractString=pwd())
     JSON.json(julia_evidence_graph_packet(project_root))
 end
 
@@ -166,11 +166,11 @@ function render_julia_evidence_analysis_request(packet::Dict{String,Any})
 end
 
 """Render the Julia evidence graph-turbo request JSON for evidence-quality ranking."""
-function render_julia_evidence_analysis_request_json(project_root::AbstractString=pwd())
+function render_asp_julia_evidence_analysis_request_json(project_root::AbstractString=pwd())
     JSON.json(julia_evidence_analysis_request_packet(project_root))
 end
 
-function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
+function run_asp_julia_evidence_cli(args::Vector{String}; out=stdout)
     isempty(args) && error("expected evidence <graph|analyze>")
     action = args[1]
     action in ("graph", "analyze", "analysis") ||
@@ -181,8 +181,8 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
         if arg == "--json"
             json = true
         elseif arg in ("--help", "-h")
-            print(out, "asp-julia evidence graph [--json] [PROJECT_ROOT]\n")
-            print(out, "asp-julia evidence analyze [--json] [PROJECT_ROOT]\n")
+            print(out, "asp-julia evidence graph [--json] [WORKSPACE_ROOT]\n")
+            print(out, "asp-julia evidence analyze [--json] [WORKSPACE_ROOT]\n")
             return 0
         elseif startswith(arg, "--")
             error("unknown evidence option: $(arg)")
@@ -191,7 +191,7 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
         end
     end
     length(positionals) <= 1 ||
-        error("expected at most one PROJECT_ROOT argument")
+        error("expected at most one WORKSPACE_ROOT argument")
     project_root = isempty(positionals) ? pwd() : only(positionals)
     if action == "graph"
         packet = julia_evidence_graph_packet(project_root)

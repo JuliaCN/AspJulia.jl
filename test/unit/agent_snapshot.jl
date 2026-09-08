@@ -26,7 +26,7 @@
         "using Test\n@testset \"core\" begin\n@test run(1) == 1\n@test run(1.0) == 1.0\nend\n",
     )
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("Package: Example", rendered)
     @test occursin("Files: source=2 test=1", rendered)
@@ -97,7 +97,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin(
         "sources=LocalDep(path=deps/LocalDep);RemoteDep(rev=abcdef,subdir=src/SubPackage,url=https://example.invalid/repo.git)",
@@ -129,7 +129,7 @@ end
     )
     write(joinpath(root, "benchmark", "runbenchmarks.jl"), "println(\"benchmark\")\n")
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("Verification:", rendered)
     @test occursin("kind=performance", rendered)
@@ -164,7 +164,7 @@ end
         "using Example\nscripted_example() = run(1)\n",
     )
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("Files: source=1 test=0 package=2", rendered)
     @test occursin("- owner docs/make.jl role=docs imports=Documenter methods=build_docs", rendered)
@@ -180,7 +180,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\ninclude(path)\nend\n")
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("DynamicIncludes:", rendered)
     @test occursin("include(path)", rendered)
@@ -191,5 +191,5 @@ end
 @testset "agent snapshot rejects missing project root" begin
     missing = joinpath(mktempdir(), "missing")
 
-    @test_throws ErrorException render_julia_project_harness_agent_snapshot(missing)
+    @test_throws ErrorException render_asp_julia_agent_snapshot(missing)
 end

@@ -2,7 +2,7 @@ const MAX_AGENT_REASONING_TREE_LINES = 32
 const MAX_AGENT_REASONING_TREE_ITEMS = 8
 
 function snapshot_reasoning_tree_lines(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     lines = ["- root $(reasoning_tree_root_detail(scope))"]
@@ -12,7 +12,7 @@ function snapshot_reasoning_tree_lines(
     compact_reasoning_tree_lines(lines)
 end
 
-function reasoning_tree_root_detail(scope::JuliaProjectHarnessScope)
+function reasoning_tree_root_detail(scope::AspJuliaWorkspaceScope)
     segments = ["package=$(something(scope.package_name, "<unknown>"))"]
     !isnothing(scope.package_entry_path) &&
         push!(segments, "entry=$(display_project_path(scope, scope.package_entry_path))")
@@ -24,7 +24,7 @@ function reasoning_tree_root_detail(scope::JuliaProjectHarnessScope)
 end
 
 function reasoning_tree_owner_line(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
 )
     segments = reasoning_tree_owner_segments(scope, parsed)
@@ -33,7 +33,7 @@ function reasoning_tree_owner_line(
 end
 
 function reasoning_tree_owner_segments(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
 )
     parsed.report.is_valid || return ["role=$(reasoning_tree_owner_role(scope, parsed.report.path))", "parse=invalid"]
@@ -49,7 +49,7 @@ function reasoning_tree_owner_segments(
     segments
 end
 
-function reasoning_tree_owner_role(scope::JuliaProjectHarnessScope, path::AbstractString)
+function reasoning_tree_owner_role(scope::AspJuliaWorkspaceScope, path::AbstractString)
     !isnothing(scope.package_entry_path) && path == scope.package_entry_path && return "entry"
     is_test_path(scope, path) && return "test"
     any(extension_path -> is_path_under(path, extension_path), scope.extension_paths) && return "extension"
@@ -84,7 +84,7 @@ reasoning_tree_import_roots(parsed::ParsedJuliaFile) =
     [imported.root for imported in parsed.syntax_facts.imports]
 
 function reasoning_tree_include_targets(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
 )
     [

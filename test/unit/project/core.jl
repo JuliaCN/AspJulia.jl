@@ -5,14 +5,14 @@
     write(joinpath(root, "src", "Example.jl"), "module Example\ninclude(\"api.jl\")\nend\n")
     write(joinpath(root, "src", "api.jl"), "run() = 1\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test !isnothing(report.project_resolution)
     @test report.project_resolution.package_name == "Example"
     @test isnothing(report.project_resolution.project_parse_error)
     @test report.project_resolution.package_entry_path == joinpath(root, "src", "Example.jl")
-    @test render_julia_project_harness(report) == "[ok] julia\n"
+    @test render_asp_julia_report(report) == "[ok] julia\n"
 end
 
 @testset "project runner resolves root from Project.toml owner" begin
@@ -22,7 +22,7 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\ninclude(\"internal/api.jl\")\nend\n")
     write(joinpath(root, "src", "internal", "api.jl"), "run() = 1\n")
 
-    report = run_julia_project_harness(joinpath(root, "src", "internal"))
+    report = run_asp_julia_workspace(joinpath(root, "src", "internal"))
 
     @test AspJulia.is_clean(report)
     @test report.project_resolution.project_root == root
@@ -44,8 +44,8 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Entry.jl"), "module Example\nend\n")
 
-    report = run_julia_project_harness(root)
-    snapshot = render_julia_project_harness_agent_snapshot(root)
+    report = run_asp_julia_workspace(root)
+    snapshot = render_asp_julia_agent_snapshot(root)
 
     @test AspJulia.is_clean(report)
     @test report.project_resolution.project_entryfile == "src/Entry.jl"
@@ -70,7 +70,7 @@ end
     write(joinpath(root, "lib", "Entry.jl"), "module Example\nend\n")
     write(joinpath(root, "src", "Stale.jl"), "module Stale\nusing MissingPkg\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test report.project_resolution.source_paths == [joinpath(root, "lib")]
@@ -98,7 +98,7 @@ end
     write(joinpath(root, "examples", "runexamples.jl"), "println(\"example\")\n")
     write(joinpath(root, "benchmark", "runbenchmarks.jl"), "println(\"benchmark\")\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
     scope = report.project_resolution
 
     @test AspJulia.is_clean(report)
@@ -152,7 +152,7 @@ end
     mkpath(joinpath(root, "ext"))
     write(joinpath(root, "ext", "ExampleWeakExt.jl"), "module ExampleWeakExt\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
     scope = report.project_resolution
 
     @test AspJulia.is_clean(report)
@@ -190,7 +190,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing JuliaSyntax\nusing Pkg\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
 end
@@ -219,8 +219,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "ext", "ExampleJSONExt.jl"), "module ExampleJSONExt\nusing Example\nusing JSON\nend\n")
 
-    report = run_julia_project_harness(root)
-    snapshot = render_julia_project_harness_agent_snapshot(root)
+    report = run_asp_julia_workspace(root)
+    snapshot = render_asp_julia_agent_snapshot(root)
 
     @test AspJulia.is_clean(report)
     @test any(file -> file.path == joinpath(root, "ext", "ExampleJSONExt.jl"), report.files)
@@ -267,8 +267,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    snapshot = render_julia_project_harness_agent_snapshot(root)
+    report = run_asp_julia_workspace(root)
+    snapshot = render_asp_julia_agent_snapshot(root)
 
     @test AspJulia.is_clean(report)
     @test occursin("weakdeps=Moshi", snapshot)
@@ -289,7 +289,7 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "ext", "LooseExt.jl"), "module LooseExt\nusing MissingPkg\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(report.project_resolution.extension_paths)
@@ -320,8 +320,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing JSON\nend\n")
     write(joinpath(root, "ext", "ExampleJSONExt.jl"), "module ExampleJSONExt\nusing JSON\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
@@ -354,8 +354,8 @@ end
         "module LocalDep\nusing JSON\nend\n",
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test report.project_resolution.source_dependency_projects == ["deps/LocalDep"]
@@ -384,8 +384,8 @@ end
     write_project(joinpath(root, "packages", "Member"), "Member")
     write(joinpath(root, "packages", "Member", "src", "Member.jl"), "module Member\nend\n")
 
-    report = run_julia_project_harness(root)
-    snapshot = render_julia_project_harness_agent_snapshot(root)
+    report = run_asp_julia_workspace(root)
+    snapshot = render_asp_julia_agent_snapshot(root)
 
     @test AspJulia.is_clean(report)
     @test length(report.workspace_member_scopes) == 1
@@ -419,8 +419,8 @@ end
         "module Member\nusing JSON\nend\n",
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
@@ -446,8 +446,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "ext", "ExampleJSONExt.jl"), "module ExampleJSONExt\nusing JSON\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-012", rendered)

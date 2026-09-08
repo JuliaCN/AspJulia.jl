@@ -23,7 +23,7 @@ function public_mutating_method_contract_findings(
 end
 
 function public_mutating_method_test_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
@@ -63,7 +63,7 @@ function public_mutating_method_test_findings(
 end
 
 function tested_mutating_call_names(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     names = Set{String}()

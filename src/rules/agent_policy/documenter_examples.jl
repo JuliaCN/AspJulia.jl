@@ -2,7 +2,7 @@ const DOCUMENTER_EXECUTABLE_EXAMPLE_LANGUAGES = Set(["@example", "@repl", "jldoc
 const MAX_DOCUMENTER_EXAMPLE_MISSING_NAMES = 8
 
 function public_documenter_example_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
 )
@@ -23,7 +23,7 @@ function public_documenter_example_findings(
     ]
 end
 
-function documenter_docs_surface(scope::JuliaProjectHarnessScope)
+function documenter_docs_surface(scope::AspJuliaWorkspaceScope)
     docs_root = joinpath(scope.project_root, "docs")
     docs_project = joinpath(docs_root, "Project.toml")
     docs_make = joinpath(docs_root, "make.jl")
@@ -146,7 +146,7 @@ function syntax_identifiers_from_source(source::AbstractString)
 end
 
 function documenter_example_summary(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     missing_names::Vector{String},
 )
     capped = first(missing_names, min(length(missing_names), MAX_DOCUMENTER_EXAMPLE_MISSING_NAMES))

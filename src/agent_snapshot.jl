@@ -7,12 +7,12 @@ const MAX_AGENT_SNAPSHOT_TESTSETS_PER_FILE = 8
 
 Errors if `project_root` does not name an existing directory.
 """
-function render_julia_project_harness_agent_snapshot(
+function render_asp_julia_agent_snapshot(
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     isdir(project_root) || error("project root does not exist: $(project_root)")
-    scope = julia_project_harness_scope(project_root, config)
+    scope = asp_julia_workspace_scope(project_root, config)
     workspace_member_scopes = julia_workspace_member_scopes(scope, config)
     monitored_paths = vcat(
         scope_search_paths(scope),
@@ -35,12 +35,12 @@ function render_julia_project_harness_agent_snapshot(
 end
 
 function render_julia_package_snapshot(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     findings::Vector{AspJuliaFinding},
     ;
-    workspace_member_scopes=JuliaProjectHarnessScope[],
-    config=default_julia_harness_config(),
+    workspace_member_scopes=AspJuliaWorkspaceScope[],
+    config=default_asp_julia_config(),
 )
     source_count = count(
         parsed -> any(source_path -> is_path_under(parsed.report.path, source_path), scope.source_paths),
@@ -147,7 +147,7 @@ function render_julia_package_snapshot(
     rendered
 end
 
-function snapshot_module_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_module_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.modules) && continue
@@ -160,7 +160,7 @@ function snapshot_module_lines(scope::JuliaProjectHarnessScope, parsed_files::Ve
     lines
 end
 
-function snapshot_public_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_public_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.exports) && continue
@@ -172,7 +172,7 @@ function snapshot_public_lines(scope::JuliaProjectHarnessScope, parsed_files::Ve
     lines
 end
 
-function snapshot_import_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_import_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.imports) && continue
@@ -187,7 +187,7 @@ function display_import_syntax(imported::JuliaImportSyntax)
     "$(imported.kind)=$(imported.root)$(suffix)"
 end
 
-function snapshot_type_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_type_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.types) && continue
@@ -210,7 +210,7 @@ function display_type_syntax(type_fact::JuliaTypeSyntax)
     "$(kind)=$(type_fact.name)$(parameter_suffix)$(supertype_suffix)$(field_suffix)$(typed_suffix)$(default_suffix)"
 end
 
-function snapshot_binding_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_binding_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.bindings) && continue
@@ -236,7 +236,7 @@ function display_binding_syntax(binding::JuliaBindingSyntax)
     "$(binding.kind)=$(binding.name)$(type_suffix)$(initializer_suffix)"
 end
 
-function snapshot_method_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_method_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.functions) && continue
@@ -285,7 +285,7 @@ function display_function_syntax(function_fact::JuliaFunctionSyntax)
     "$(function_fact.kind)=$(function_fact.name)/$(length(function_fact.positional_args))$(keyword_suffix)$(typed_suffix)$(return_suffix)$(where_suffix)$(bool_suffix)$(stringly_suffix)$(branch_literal_suffix)$(flow_suffix)$(branch_suffix)$(loop_suffix)$(loop_depth_suffix)$(body_suffix)$(macro_suffix)"
 end
 
-function snapshot_test_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_test_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         isempty(parsed.syntax_facts.tests) && continue
@@ -327,7 +327,7 @@ function display_test_label(label::AbstractString)
     "\"$(replace(String(label), "\"" => "\\\"", "\n" => " "))\""
 end
 
-function compact_include_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function compact_include_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         targets = [
@@ -345,7 +345,7 @@ function compact_include_lines(scope::JuliaProjectHarnessScope, parsed_files::Ve
     lines
 end
 
-function dynamic_include_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function dynamic_include_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = String[]
     for parsed in parsed_files
         for include in parsed.syntax_facts.includes
@@ -359,7 +359,7 @@ function dynamic_include_lines(scope::JuliaProjectHarnessScope, parsed_files::Ve
     lines
 end
 
-function snapshot_finding_lines(scope::JuliaProjectHarnessScope, findings::Vector{AspJuliaFinding})
+function snapshot_finding_lines(scope::AspJuliaWorkspaceScope, findings::Vector{AspJuliaFinding})
     grouped = Dict{String,Int}()
     for finding in findings
         grouped[finding.rule_id] = get(grouped, finding.rule_id, 0) + 1
@@ -367,7 +367,7 @@ function snapshot_finding_lines(scope::JuliaProjectHarnessScope, findings::Vecto
     ["- $(rule_id) count=$(count)" for (rule_id, count) in sort!(collect(grouped))]
 end
 
-function display_project_path(scope::JuliaProjectHarnessScope, path::AbstractString)
+function display_project_path(scope::AspJuliaWorkspaceScope, path::AbstractString)
     slash_path(relpath(path, scope.project_root))
 end
 

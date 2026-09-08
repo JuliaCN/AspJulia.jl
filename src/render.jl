@@ -1,15 +1,15 @@
 using JSON
 
 """Render blocking findings and agent advice as compact text."""
-render_julia_project_harness(report::AspJuliaReport) =
-    render_julia_project_harness_with_options(report; severities=nothing, include_advice=true)
+render_asp_julia_report(report::AspJuliaReport) =
+    render_asp_julia_report_with_options(report; severities=nothing, include_advice=true)
 
-"""Render only advisory findings from a Julia project harness report."""
-function render_julia_project_harness_advice(report::AspJuliaReport)
+"""Render only advisory findings from an ASP Julia report."""
+function render_asp_julia_advice(report::AspJuliaReport)
     render_finding_list(advisory_findings(report))
 end
 
-function render_julia_project_harness_with_options(
+function render_asp_julia_report_with_options(
     report::AspJuliaReport;
     severities=nothing,
     include_advice::Bool=true,
@@ -93,7 +93,7 @@ function render_finding(finding::AspJuliaFinding)
     end
     rendered *= "Help: $(finding.summary)\n"
     rendered *= "Contract: $(finding.requirement)\n"
-    visibility = julia_rule_visibility(finding.rule_id)
+    visibility = asp_julia_rule_visibility(finding.rule_id)
     if !isnothing(visibility)
         rendered *= compact_rule_visibility(visibility)
     end
@@ -143,8 +143,8 @@ end
 
 slash_path(path::AbstractString) = replace(String(path), '\\' => '/')
 
-"""Render a Julia project harness report as JSON for tools."""
-function render_julia_project_harness_json(report::AspJuliaReport)
+"""Render an ASP Julia report as JSON for tools."""
+function render_asp_julia_report_json(report::AspJuliaReport)
     JSON.json(report_dict(report))
 end
 
@@ -191,7 +191,7 @@ function location_dict(location::SourceLocation)
     )
 end
 
-function project_resolution_dict(scope::JuliaProjectHarnessScope)
+function project_resolution_dict(scope::AspJuliaWorkspaceScope)
     Dict(
         "project_root" => slash_path(scope.project_root),
         "project_toml_path" => isnothing(scope.project_toml_path) ? nothing :

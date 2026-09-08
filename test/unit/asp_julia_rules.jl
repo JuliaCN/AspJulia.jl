@@ -1,5 +1,5 @@
-@testset "harness rules" begin
-    raw = julia_harness_rules_markdown()
+@testset "ASP Julia rules" begin
+    raw = asp_julia_rules_markdown()
     lines = split(chomp(raw), '\n')
 
     rule_ids = String[]
@@ -21,25 +21,25 @@
     end
     catalog_rule_ids = [
         rule.rule_id for rule in vcat(
-            julia_agent_policy_rules(),
-            julia_modularity_rules(),
-            julia_project_policy_rules(),
+            asp_julia_agent_policy_rules(),
+            asp_julia_modularity_rules(),
+            asp_julia_package_policy_rules(),
         )
     ]
     @test sort(rule_ids) == sort(catalog_rule_ids)
 
     unit_dir = @__DIR__
-    if get(ENV, "UPDATE_HARNESS_RULES", "") != ""
-        write_julia_harness_rules_to_unit_tests(unit_dir)
+    if get(ENV, "UPDATE_ASP_JULIA_RULES", "") != ""
+        write_asp_julia_rules_to_unit_tests(unit_dir)
     end
-    fixture = joinpath(unit_dir, "harness-rules.generated.md")
-    @test read(fixture, String) == render_julia_harness_rules_markdown()
+    fixture = joinpath(unit_dir, "asp-julia-rules.generated.md")
+    @test read(fixture, String) == render_asp_julia_rules_markdown()
 
     temp_dir = mktempdir()
     try
-        output = write_julia_harness_rules_to_unit_tests(temp_dir)
-        @test output == joinpath(temp_dir, "harness-rules.generated.md")
-        @test read(output, String) == render_julia_harness_rules_markdown()
+        output = write_asp_julia_rules_to_unit_tests(temp_dir)
+        @test output == joinpath(temp_dir, "asp-julia-rules.generated.md")
+        @test read(output, String) == render_asp_julia_rules_markdown()
     finally
         rm(temp_dir; recursive=true, force=true)
     end

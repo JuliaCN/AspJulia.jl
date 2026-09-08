@@ -93,7 +93,7 @@ end
     out = IOBuffer()
     err = IOBuffer()
 
-    status = run_julia_project_harness_cli(String[]; out, err)
+    status = run_asp_julia_cli(String[]; out, err)
 
     @test status == 0
     @test occursin("asp-julia", String(take!(out)))
@@ -108,17 +108,17 @@ end
     doctor_out = IOBuffer()
 
     compact_status =
-        run_julia_project_harness_cli(["agent", "registry", root]; out = compact_out)
+        run_asp_julia_cli(["agent", "registry", root]; out = compact_out)
     json_status =
-        run_julia_project_harness_cli(["agent", "registry", "--json", root]; out = json_out)
+        run_asp_julia_cli(["agent", "registry", "--json", root]; out = json_out)
     doctor_status =
-        run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = doctor_out)
+        run_asp_julia_cli(["agent", "doctor", "--json", root]; out = doctor_out)
     registry = JSON.parse(String(take!(json_out)))
     doctor_registry = JSON.parse(String(take!(doctor_out)))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
 
     @test compact_status == 0
-    @test occursin("[julia-agent-registry]", String(take!(compact_out)))
+    @test occursin("[asp-julia-agent-registry]", String(take!(compact_out)))
     @test json_status == 0
     @test doctor_status == 0
     @test registry.registryId == "agent.semantic-protocols.semantic-language-registry"
@@ -155,8 +155,8 @@ end
     package_root = normpath(joinpath(@__DIR__, "..", ".."))
     protocol_schemas = normpath(joinpath(package_root, "..", "..", "schemas"))
     schema_dir = joinpath(package_root, "schemas")
-    registrations = julia_schema_registrations()
-    @test_throws ErrorException julia_schema_registrations(joinpath(package_root, "missing-schemas"))
+    registrations = asp_julia_schema_registrations()
+    @test_throws ErrorException asp_julia_schema_registrations(joinpath(package_root, "missing-schemas"))
     registered_paths = Set(registration["path"] for registration in registrations)
     package_schema_paths = Set(
         "schemas/$file_name"
@@ -194,7 +194,7 @@ end
     write_cli_project(root)
     out = IOBuffer()
 
-    status = run_julia_project_harness_cli(["export", "index", root]; out)
+    status = run_asp_julia_cli(["export", "index", root]; out)
     packet = JSON.parse(String(take!(out)))
 
     @test status == 0
@@ -213,7 +213,7 @@ end
     @test any(fact -> fact.kind == "argument", packet.facts)
     @test any(index -> index.name == "public-api", packet.indexes)
     @test all(fact -> !startswith(fact.ownerPath, "/"), packet.facts)
-    @test_throws ErrorException run_julia_harness_export_cli(String[])
+    @test_throws ErrorException run_asp_julia_export_cli(String[])
 end
 
 @testset "cli verification task output" begin
@@ -228,20 +228,20 @@ end
     receipt_json_out = IOBuffer()
     bad_receipt_out = IOBuffer()
 
-    status = run_julia_project_harness_cli(["--verification-tasks", root]; out)
+    status = run_asp_julia_cli(["--verification-tasks", root]; out)
     json_status =
-        run_julia_project_harness_cli(["--verification-tasks-json", root]; out = json_out)
+        run_asp_julia_cli(["--verification-tasks-json", root]; out = json_out)
     profile_status =
-        run_julia_project_harness_cli(["--verification-profile", root]; out = profile_out)
-    profile_json_status = run_julia_project_harness_cli(
+        run_asp_julia_cli(["--verification-profile", root]; out = profile_out)
+    profile_json_status = run_asp_julia_cli(
         ["--verification-profile-json", root];
         out = profile_json_out,
     )
-    template_status = run_julia_project_harness_cli(
+    template_status = run_asp_julia_cli(
         ["--verification-receipt-template", root];
         out = template_out,
     )
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     security = only(record for record in index.records if record.kind == "security")
     stress = only(record for record in index.records if record.kind == "stress")
     receipt_path = joinpath(root, "receipts.json")
@@ -258,15 +258,15 @@ end
         {"receipts":[{"fingerprint":"$(stress.fingerprint)","scenario":"todo"}]}
         """,
     )
-    receipt_status = run_julia_project_harness_cli(
+    receipt_status = run_asp_julia_cli(
         ["--verification-receipts", receipt_path, root];
         out = receipt_out,
     )
-    receipt_json_status = run_julia_project_harness_cli(
+    receipt_json_status = run_asp_julia_cli(
         ["--verification-receipts-json", receipt_path, root];
         out = receipt_json_out,
     )
-    bad_receipt_status = run_julia_project_harness_cli(
+    bad_receipt_status = run_asp_julia_cli(
         ["--verification-receipts", bad_receipt_path, root];
         out = bad_receipt_out,
     )
@@ -314,7 +314,7 @@ end
     write_cli_docs_project(root)
     out = IOBuffer()
 
-    status = run_julia_project_harness_cli(["--verification-tasks", root]; out)
+    status = run_asp_julia_cli(["--verification-tasks", root]; out)
     rendered = String(take!(out))
 
     @test status == 0

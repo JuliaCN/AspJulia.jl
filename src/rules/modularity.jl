@@ -1,5 +1,5 @@
 function evaluate_modularity_rules(
-    scope::Union{Nothing,JuliaProjectHarnessScope},
+    scope::Union{Nothing,AspJuliaWorkspaceScope},
     parsed_files::Vector{ParsedJuliaFile},
 )
     isnothing(scope) && return AspJuliaFinding[]
@@ -42,7 +42,7 @@ function evaluate_modularity_rules(
 end
 
 function project_jl_owner_budget_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -81,7 +81,7 @@ function project_jl_owner_budget_findings(
     findings
 end
 
-function project_jl_owner_budget_label(scope::JuliaProjectHarnessScope, path::AbstractString)
+function project_jl_owner_budget_label(scope::AspJuliaWorkspaceScope, path::AbstractString)
     if any(test_path -> is_path_under(path, test_path), scope.test_paths)
         return "split this test owner into focused included test files"
     elseif any(extension_path -> is_path_under(path, extension_path), scope.extension_paths)
@@ -156,7 +156,7 @@ function visit_include_graph!(
 end
 
 function orphan_source_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     parsed_by_path::Dict{String,ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
@@ -223,7 +223,7 @@ function is_path_under(path::AbstractString, root::AbstractString)
 end
 
 function generic_owner_bucket_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -247,14 +247,14 @@ function generic_owner_bucket_findings(
     findings
 end
 
-function first_source_root(scope::JuliaProjectHarnessScope, path::AbstractString)
+function first_source_root(scope::AspJuliaWorkspaceScope, path::AbstractString)
     for source_path in scope.source_paths
         is_path_under(path, source_path) && return source_path
     end
     nothing
 end
 
-function first_project_jl_owner_root(scope::JuliaProjectHarnessScope, path::AbstractString)
+function first_project_jl_owner_root(scope::AspJuliaWorkspaceScope, path::AbstractString)
     for owner_root in vcat(scope.source_paths, scope.extension_paths, scope.test_paths)
         is_path_under(path, owner_root) && return owner_root
     end

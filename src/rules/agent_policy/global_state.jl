@@ -19,7 +19,7 @@ const MUTABLE_GLOBAL_INITIALIZER_KINDS = Set([
 ])
 
 function mutable_global_state_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )

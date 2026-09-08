@@ -1,17 +1,17 @@
 const PROJECT_HARNESS_TOOL_TABLE = "AspJulia"
 
-function project_toml_harness_config(
+function asp_julia_project_config(
     project_root::AbstractString,
     base_config::AspJuliaConfig,
 )
     project_toml = Base.current_project(project_search_start(project_root))
     isnothing(project_toml) && return base_config
-    table = project_harness_tool_table(project_toml)
+    table = asp_julia_tool_table(project_toml)
     isempty(table) && return base_config
-    merge_project_harness_tool_config(base_config, table)
+    merge_asp_julia_tool_config(base_config, table)
 end
 
-function project_harness_tool_table(project_toml::AbstractString)
+function asp_julia_tool_table(project_toml::AbstractString)
     parsed = TOML.parsefile(project_toml)
     tool = get(parsed, "tool", nothing)
     tool isa Dict{String,Any} || return Dict{String,Any}()
@@ -20,7 +20,7 @@ function project_harness_tool_table(project_toml::AbstractString)
     copy(table)
 end
 
-function merge_project_harness_tool_config(
+function merge_asp_julia_tool_config(
     base_config::AspJuliaConfig,
     table::Dict{String,Any},
 )
@@ -30,7 +30,7 @@ function merge_project_harness_tool_config(
             "ignored_dir_names",
             collect(base_config.ignored_dir_names),
         )),
-        Set(parse_harness_severity.(project_config_string_list(
+        Set(parse_asp_julia_severity.(project_config_string_list(
             table,
             "blocking_severities",
             severity_label.(collect(base_config.blocking_severities)),
@@ -133,7 +133,7 @@ function project_config_severity_dict(
     result = Dict{String,JuliaDiagnosticSeverity}()
     for (rule_id, severity) in value
         severity isa String || throw(ArgumentError("`$key.$rule_id` must be a string"))
-        result[rule_id] = parse_harness_severity(severity)
+        result[rule_id] = parse_asp_julia_severity(severity)
     end
     return result
 end
@@ -196,19 +196,19 @@ function project_advice_policy_explanation(
 end
 
 function severity_set(value)
-    Set(parse_harness_severity.(string_list(value)))
+    Set(parse_asp_julia_severity.(string_list(value)))
 end
 
 function severity_dict(value)
     value isa AbstractDict ||
         throw(ArgumentError("expected a severity override table, got $(typeof(value))"))
     Dict{String,JuliaDiagnosticSeverity}(
-        String(rule_id) => parse_harness_severity(string(severity)) for
+        String(rule_id) => parse_asp_julia_severity(string(severity)) for
         (rule_id, severity) in value
     )
 end
 
-function parse_harness_severity(value::AbstractString)
+function parse_asp_julia_severity(value::AbstractString)
     normalized = lowercase(strip(value))
     normalized == "info" && return Info
     normalized == "warning" && return Warning

@@ -1,17 +1,17 @@
 """Build parser-derived verification profile candidates for a Julia project."""
-function build_julia_verification_profile_index(
+function build_asp_julia_verification_profile_index(
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     verification_profile_index_from_context(project_policy_context(project_root, config), config)
 end
 
 function verification_profile_candidates_for_scope(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     candidates = JuliaVerificationProfileCandidate[]
-    if has_harness_dependency(scope)
+    if has_asp_julia_dependency(scope)
         push!(candidates, test_profile_gate_candidate(scope, parsed_files))
     end
     responsibility_candidate = project_responsibility_profile_candidate(scope, parsed_files)
@@ -21,7 +21,7 @@ function verification_profile_candidates_for_scope(
 end
 
 function test_profile_gate_candidate(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     has_hook = has_test_profile_hook(scope, parsed_files)
@@ -30,7 +30,7 @@ function test_profile_gate_candidate(
         preferred_test_owner_path(scope),
         has_hook ? "configured" : "missing_profile",
         ["test_profile_gate"],
-        ["harness_policy", "pkg_test"],
+        ["asp_julia_policy", "pkg_test"],
         verification_evidence(
             "hook" => string(has_hook),
             "dependency" => "AspJulia",
@@ -38,7 +38,7 @@ function test_profile_gate_candidate(
     )
 end
 
-function extension_profile_candidates(scope::JuliaProjectHarnessScope)
+function extension_profile_candidates(scope::AspJuliaWorkspaceScope)
     [
         JuliaVerificationProfileCandidate(
             scope.project_root,
@@ -57,7 +57,7 @@ function extension_profile_candidates(scope::JuliaProjectHarnessScope)
 end
 
 """Render verification profile candidates as compact text for agents."""
-function render_julia_verification_profile_index(index::JuliaVerificationProfileIndex)
+function render_asp_julia_verification_profile_index(index::JuliaVerificationProfileIndex)
     isempty(index.candidates) && return "[ok] julia verification profiles no-candidates\n"
     lines = ["VerificationProfiles: count=$(length(index.candidates))"]
     for candidate in index.candidates
@@ -79,13 +79,13 @@ function render_julia_verification_profile_index(index::JuliaVerificationProfile
 end
 
 """Render the in-test verification profile as compact agent context."""
-function render_julia_verification_profile(profile::JuliaVerificationProfile)
+function render_asp_julia_verification_profile(profile::JuliaVerificationProfile)
     parts = [
-        chomp(render_julia_project_harness(profile.report)),
-        chomp(render_julia_verification_task_index(profile.task_index)),
-        chomp(render_julia_verification_profile_index(profile.profile_index)),
+        chomp(render_asp_julia_report(profile.report)),
+        chomp(render_asp_julia_verification_task_index(profile.task_index)),
+        chomp(render_asp_julia_verification_profile_index(profile.profile_index)),
         isempty(profile.receipt_reviews) ? "" : chomp(
-            render_julia_verification_receipt_reviews(
+            render_asp_julia_verification_receipt_reviews(
                 profile.receipt_reviews;
                 project_root=profile.task_index.project_root,
             ),
@@ -95,12 +95,12 @@ function render_julia_verification_profile(profile::JuliaVerificationProfile)
 end
 
 """Render verification profile candidates as JSON."""
-function render_julia_verification_profile_index_json(index::JuliaVerificationProfileIndex)
+function render_asp_julia_verification_profile_index_json(index::JuliaVerificationProfileIndex)
     JSON.json(verification_profile_index_dict(index))
 end
 
 """Render the full in-test verification profile as JSON."""
-function render_julia_verification_profile_json(profile::JuliaVerificationProfile)
+function render_asp_julia_verification_profile_json(profile::JuliaVerificationProfile)
     JSON.json(verification_profile_dict(profile))
 end
 

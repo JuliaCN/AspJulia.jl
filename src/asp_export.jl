@@ -200,11 +200,11 @@ function asp_index_descriptors(facts::Vector{Dict{String,Any}})
 end
 
 """Build a main-schema native syntax fact index packet for ASP caches."""
-function julia_index_export_packet(project_root::AbstractString)
+function asp_julia_index_export_packet(project_root::AbstractString)
     root = abspath(String(project_root))
-    config = default_julia_harness_config()
-    scope = julia_project_harness_scope(root, config)
-    entries = julia_project_search_index(root; config)
+    config = default_asp_julia_config()
+    scope = asp_julia_workspace_scope(root, config)
+    entries = asp_julia_workspace_search_index(root; config)
     facts = [julia_native_syntax_fact(entry, root) for entry in entries]
     Dict(
         "schemaId" => JULIA_INDEX_EXPORT_SCHEMA_ID,
@@ -228,8 +228,8 @@ function julia_index_export_packet(project_root::AbstractString)
 end
 
 """Render the ASP Julia index export packet as one JSON document."""
-function render_julia_index_export_json(project_root::AbstractString)
-    JSON.json(julia_index_export_packet(project_root))
+function render_asp_julia_index_export_json(project_root::AbstractString)
+    JSON.json(asp_julia_index_export_packet(project_root))
 end
 
 """Run the agent-facing `export index` CLI used by ASP cache refreshes.
@@ -237,12 +237,12 @@ end
 Requires `args[1] == "index"` when arguments are provided, and throws an
 `ErrorException` for missing or unknown export views.
 """
-function run_julia_harness_export_cli(args::Vector{String}; out::IO=stdout)
+function run_asp_julia_export_cli(args::Vector{String}; out::IO=stdout)
     isempty(args) && error("export requires a view")
     view = first(args)
     if view == "index"
         project_root = length(args) >= 2 ? args[2] : pwd()
-        print(out, render_julia_index_export_json(project_root))
+        print(out, render_asp_julia_index_export_json(project_root))
         print(out, "\n")
         return 0
     end

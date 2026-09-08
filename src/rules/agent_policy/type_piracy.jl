@@ -7,7 +7,7 @@ const TYPE_PIRACY_CONTRACT_DOC_TOKENS = (
 )
 
 function external_method_extension_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -53,7 +53,7 @@ function package_owned_type_names(parsed_files::Vector{ParsedJuliaFile})
 end
 
 function package_method_roots(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     roots = Set{String}()

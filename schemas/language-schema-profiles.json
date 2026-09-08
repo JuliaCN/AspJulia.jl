@@ -31,6 +31,7 @@
       "asp-client-workspace-syntax-query-request.v1.schema.json",
       "asp-client-workspace-syntax-query-response.v1.schema.json",
       "search-topology-settlement.v1.schema.json",
+      "runtime-search-execution-budget.v1.schema.json",
       "large-search-playbook-performance-receipt.v1.schema.json",
       "asp-client-source-index-lookup-request.schema.json",
       "resident-search-result.v1.schema.json",
@@ -65,6 +66,16 @@
       "semantic-search-packet.v1.schema.json",
       "semantic-search-storage-route.v1.schema.json",
       "semantic-query-packet.v1.schema.json",
+      "runtime-execution-binding.v2.schema.json",
+      "host-workspace-initialization-binding.v1.schema.json",
+      "runtime-artifact-bundle-binding.v2.schema.json",
+      "runtime-artifact-execution-closure-member.v1.schema.json",
+      "runtime-binary-bundle.v2.schema.json",
+      "content-publication-commit.v1.schema.json",
+      "runtime-workspace-execution-publication.v1.schema.json",
+      "runtime-workspace-execution-pointer.v1.schema.json",
+      "query-playbook-materialization-request.v1.schema.json",
+      "query-playbook-materialization-receipt.v1.schema.json",
       "semantic-exact-selector-receipt.v1.schema.json",
       "semantic-owner-item-evidence.v1.schema.json",
       "semantic-content-compaction.v1.schema.json",
@@ -109,6 +120,7 @@
   "profiles": [
     {
       "languageId": "rust",
+      "searchProducerAxes": ["language"],
       "packageRoot": "languages/asp-rust",
       "bundleRoot": "languages/asp-rust/schemas",
       "rootSets": [
@@ -131,6 +143,7 @@
     },
     {
       "languageId": "typescript",
+      "searchProducerAxes": ["language"],
       "packageRoot": "languages/asp-typescript",
       "bundleRoot": "languages/asp-typescript/schemas",
       "rootSets": [
@@ -147,6 +160,7 @@
     },
     {
       "languageId": "python",
+      "searchProducerAxes": ["language"],
       "packageRoot": "languages/asp-python",
       "bundleRoot": "languages/asp-python/schemas",
       "rootSets": [
@@ -163,6 +177,7 @@
     },
     {
       "languageId": "julia",
+      "searchProducerAxes": ["language"],
       "packageRoot": "languages/AspJulia.jl",
       "bundleRoot": "languages/AspJulia.jl/schemas",
       "rootSets": [
@@ -177,6 +192,7 @@
     },
     {
       "languageId": "gerbil-scheme",
+      "searchProducerAxes": ["language"],
       "packageRoot": "languages/asp-gerbil-scheme",
       "bundleRoot": "languages/asp-gerbil-scheme/schemas",
       "rootSets": [
@@ -205,6 +221,7 @@
     },
     {
       "languageId": "org",
+      "searchProducerAxes": ["document"],
       "packageRoot": "languages/orgize",
       "bundleRoot": "languages/orgize/provider/org/schemas",
       "rootSets": [
@@ -218,6 +235,7 @@
     },
     {
       "languageId": "md",
+      "searchProducerAxes": ["document"],
       "packageRoot": "languages/orgize",
       "bundleRoot": "languages/orgize/provider/md/schemas",
       "rootSets": [
@@ -457,7 +475,8 @@
       "parentFamilyId": "asp.schema-family.semantic",
       "namespace": {
         "filenamePrefixes": [
-          "content-binding"
+          "content-binding",
+          "content-publication-"
         ]
       }
     },
@@ -499,6 +518,18 @@
       "definitionVisibility": "public"
     },
     {
+      "familyId": "asp.schema-family.semantic-topology",
+      "owner": "schemas",
+      "rationale": "Reusable, cross-consumer Project Topology library, generation, structural skeleton, semantic annotation, coverage, and inference-binding contracts.",
+      "priority": 210,
+      "parentFamilyId": "asp.schema-family.semantic",
+      "namespace": {
+        "filenamePrefixes": [
+          "project-topology-"
+        ]
+      }
+    },
+    {
       "familyId": "asp.schema-family.semantic-search",
       "owner": "schemas",
       "rationale": "Search packet, projection, trace, and evidence contracts under the semantic-search namespace.",
@@ -519,6 +550,7 @@
           "lexical-",
           "python-generation-graph-",
           "rendered-search-",
+          "runtime-search-",
           "repository-candidate-",
           "search-",
           "fused-search-",
@@ -527,17 +559,18 @@
         ]
       },
       "membershipOverrides": {
-        "includeSchemaPaths": [
-          "schemas/asp.exact-selector-execution-receipt.v1.schema.json",
-          "schemas/projection-evidence-context.v1.schema.json",
+      "includeSchemaPaths": [
+        "schemas/asp.exact-selector-execution-receipt.v1.schema.json",
+        "schemas/query-playbook-materialization-request.v1.schema.json",
+        "schemas/query-playbook-materialization-receipt.v1.schema.json",
+        "schemas/projection-evidence-context.v1.schema.json",
           "schemas/lexical-postings-work-reduction-receipt.schema.json",
           "schemas/rg-coverage-receipt.schema.json",
-          "schemas/query-playbook-materialization-request.v1.schema.json",
-          "schemas/query-playbook-materialization-receipt.v1.schema.json",
           "schemas/asp-client-workspace-search-playbook-request.v1.schema.json",
           "schemas/asp-client-workspace-syntax-query-request.v1.schema.json",
           "schemas/asp-client-workspace-syntax-query-response.v1.schema.json",
-          "schemas/search-topology-settlement.v1.schema.json"
+          "schemas/search-topology-settlement.v1.schema.json",
+          "schemas/runtime-search-execution-budget.v1.schema.json"
         ]
       }
     },
@@ -691,6 +724,8 @@
           "schemas/asp.active-workspace-generation.v1.schema.json",
           "schemas/active-generation-projection-capability.v1.schema.json",
           "schemas/active-search-generation.schema.json",
+          "schemas/project-workspace-binding.v1.schema.json",
+          "schemas/host-workspace-initialization-binding.v1.schema.json",
           "schemas/state-home-project-binding.schema.json"
         ]
       },
@@ -754,7 +789,8 @@
       "membershipOverrides": {
         "includeSchemaPaths": [
           "schemas/state-home-cleanup-receipt.schema.json",
-          "schemas/state-home-retention-plan.schema.json"
+          "schemas/state-home-retention-plan.schema.json",
+          "schemas/state-home-sync-receipt.schema.json"
         ]
       }
     },

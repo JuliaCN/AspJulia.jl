@@ -2,4 +2,4 @@
 
 using AspJulia
 
-exit(run_julia_project_harness_cli())
+exit(run_asp_julia_cli())

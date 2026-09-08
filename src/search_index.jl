@@ -2,12 +2,12 @@
 
 Errors if any requested source root does not exist.
 """
-function julia_lang_search_index(
+function asp_julia_paths_search_index(
     paths::Vector{<:AbstractString};
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     for path in paths
-        ispath(path) || error("harness path does not exist: $(path)")
+        ispath(path) || error("ASP Julia path does not exist: $(path)")
     end
     parsed_files = [parse_julia_file(path) for path in discover_julia_files(abspath.(String.(paths)), config)]
     julia_search_index(parsed_files)
@@ -17,12 +17,12 @@ end
 
 Errors if `project_root` does not name an existing package path.
 """
-function julia_project_search_index(
+function asp_julia_workspace_search_index(
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     ispath(project_root) || error("project path does not exist: $(project_root)")
-    scope = julia_project_harness_scope(project_root, config)
+    scope = asp_julia_workspace_scope(project_root, config)
     workspace_member_scopes = julia_workspace_member_scopes(scope, config)
     monitored_paths = vcat(
         scope_search_paths(scope),
@@ -55,42 +55,42 @@ end
 function julia_exact_owner_search_entries(
     owner_path::AbstractString,
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     source_path = julia_exact_owner_source_path(owner_path, project_root)
     isnothing(source_path) && return JuliaSearchIndexEntry[]
-    julia_lang_search_index([source_path]; config)
+    asp_julia_paths_search_index([source_path]; config)
 end
 
 """Search explicit Julia source roots with optional syntax tag filters."""
-function search_julia_lang(
+function search_asp_julia_paths(
     paths::Vector{<:AbstractString},
     query::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
     tags::Vector{<:AbstractString}=String[],
     limit::Int=25,
 )
-    entries = julia_lang_search_index(paths; config)
-    search_julia_index(entries, query; tags, limit)
+    entries = asp_julia_paths_search_index(paths; config)
+    search_asp_julia_index(entries, query; tags, limit)
 end
 
 """Search a Project.toml-rooted package with optional syntax tag filters."""
-function search_julia_project(
+function search_asp_julia_workspace(
     project_root::AbstractString,
     query::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
     tags::Vector{<:AbstractString}=String[],
     limit::Int=25,
 )
-    entries = julia_project_search_index(project_root; config)
-    search_julia_index(entries, query; tags, limit)
+    entries = asp_julia_workspace_search_index(project_root; config)
+    search_asp_julia_index(entries, query; tags, limit)
 end
 
 """Search prebuilt JuliaSyntax index entries with deterministic ranking.
 
 Errors if `limit` is negative.
 """
-function search_julia_index(
+function search_asp_julia_index(
     entries::Vector{JuliaSearchIndexEntry},
     query::AbstractString;
     tags::Vector{<:AbstractString}=String[],
@@ -121,8 +121,8 @@ end
 
 function julia_search_index(
     parsed_files::Vector{ParsedJuliaFile};
-    owner_scopes::Vector{JuliaProjectHarnessScope}=JuliaProjectHarnessScope[],
-    config=default_julia_harness_config(),
+    owner_scopes::Vector{AspJuliaWorkspaceScope}=AspJuliaWorkspaceScope[],
+    config=default_asp_julia_config(),
 )
     entries = JuliaSearchIndexEntry[]
     for owner_scope in owner_scopes

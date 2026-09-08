@@ -1,7 +1,7 @@
 const MOSHI_DOMAIN_BRANCH_THRESHOLD = 2
 
 function moshi_policy_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -26,7 +26,7 @@ function moshi_policy_findings(
 end
 
 function moshi_domain_model_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
@@ -65,7 +65,7 @@ function moshi_domain_model_findings(
 end
 
 function moshi_domain_bridge_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
@@ -115,18 +115,18 @@ function is_moshi_modeling_fact(fact::JuliaMoshiSyntax)
     fact.kind in ("data", "match")
 end
 
-function has_moshi_optional_extension(scope::JuliaProjectHarnessScope)
+function has_moshi_optional_extension(scope::AspJuliaWorkspaceScope)
     haskey(scope.weak_dependencies, "Moshi") || return false
     any(dependencies -> "Moshi" in dependencies, values(scope.extensions))
 end
 
-function moshi_test_target_active(scope::JuliaProjectHarnessScope)
+function moshi_test_target_active(scope::AspJuliaWorkspaceScope)
     "Moshi" in get(scope.targets, "test", String[])
 end
 
-function project_moshi_policy(scope::JuliaProjectHarnessScope)
+function project_moshi_policy(scope::AspJuliaWorkspaceScope)
     isnothing(scope.project_toml_path) && return "auto"
-    table = project_harness_tool_table(scope.project_toml_path)
+    table = asp_julia_tool_table(scope.project_toml_path)
     value = get(table, "moshi", "auto")
     value isa String || return "invalid"
     normalized = lowercase(String(strip(value)))
@@ -167,7 +167,7 @@ function moshi_match_bridge_satisfied(
 end
 
 function moshi_domain_model_summary(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     function_fact::JuliaFunctionSyntax,
 )
     literal_suffix = isempty(function_fact.stringly_branch_literals) ? "" :
@@ -175,7 +175,7 @@ function moshi_domain_model_summary(
     "Exported/public method `$(function_fact.terminal_name)` branches over stringly domain arguments: $(join(function_fact.stringly_domain_args, ", ")).$(literal_suffix) Prefer a typed domain carrier. $(moshi_domain_model_repair_path(scope))"
 end
 
-function moshi_domain_model_label(scope::JuliaProjectHarnessScope)
+function moshi_domain_model_label(scope::AspJuliaWorkspaceScope)
     state = moshi_extension_repair_state(scope)
     state == "direct_dep_enabled" &&
         return "add Moshi @data/@match domain modeling under `$(moshi_source_repair_target(scope))`"
@@ -188,7 +188,7 @@ function moshi_domain_model_label(scope::JuliaProjectHarnessScope)
     "model the domain with a package-owned value type, or add a Moshi weakdep extension first"
 end
 
-function moshi_domain_model_repair_path(scope::JuliaProjectHarnessScope)
+function moshi_domain_model_repair_path(scope::AspJuliaWorkspaceScope)
     state = moshi_extension_repair_state(scope)
     if state == "extension_without_model"
         return "Moshi is already configured as an optional extension; add parser-visible `@data` variants that cover the branch literals, plus a `@match` branch surface in `$(moshi_extension_repair_target(scope))` instead of treating the config as the model."
@@ -207,7 +207,7 @@ function moshi_domain_bridge_summary(function_fact::JuliaFunctionSyntax)
 end
 
 function moshi_domain_model_labels(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     function_fact::JuliaFunctionSyntax,
     modeling_facts::Vector{JuliaMoshiSyntax},
 )
@@ -331,7 +331,7 @@ function normalized_terminal_domain_token(value::AbstractString)
 end
 
 function moshi_domain_bridge_labels(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     function_fact::JuliaFunctionSyntax,
     modeling_facts::Vector{JuliaMoshiSyntax},
 )

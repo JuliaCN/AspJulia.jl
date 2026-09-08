@@ -38,15 +38,15 @@
         "using Example\nfunction run_benchmark()\n    run(1)\nend\n",
     )
 
-    entries = julia_project_search_index(root)
-    docs_results = search_julia_project(root, "makedocs"; tags=["docs", "call"], limit=1)
-    example_results = search_julia_project(
+    entries = asp_julia_workspace_search_index(root)
+    docs_results = search_asp_julia_workspace(root, "makedocs"; tags=["docs", "call"], limit=1)
+    example_results = search_asp_julia_workspace(
         root,
         "scripted_example";
         tags=["example", "method"],
         limit=1,
     )
-    benchmark_results = search_julia_project(
+    benchmark_results = search_asp_julia_workspace(
         root,
         "run_benchmark";
         tags=["benchmark", "method"],

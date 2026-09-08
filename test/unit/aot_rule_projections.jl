@@ -12,41 +12,41 @@
         write(first_owner, "scatter(x::Int) = x\n")
         write(second_owner, "scatter(x::String) = x\n")
 
-        harness = AspJulia
+        asp_julia = AspJulia
         parsed_files = [
-            harness.parse_julia_file(first_owner),
-            harness.parse_julia_file(second_owner),
+            asp_julia.parse_julia_file(first_owner),
+            asp_julia.parse_julia_file(second_owner),
         ]
-        records = harness.public_api_definition_records(
+        records = asp_julia.public_api_definition_records(
             parsed_files,
             Set(["scatter"]),
         )
         @test records isa Dict{
             String,
-            Vector{harness.PublicApiDefinitionRecord},
+            Vector{asp_julia.PublicApiDefinitionRecord},
         }
         @test length(records["scatter"]) == 2
 
-        scope = harness.julia_project_harness_scope(
+        scope = asp_julia.asp_julia_workspace_scope(
             root,
-            harness.default_julia_harness_config(),
+            asp_julia.default_asp_julia_config(),
         )
-        findings = harness.public_method_family_scattering_findings(
+        findings = asp_julia.public_method_family_scattering_findings(
             scope,
             parsed_files,
             Set(["scatter"]),
             Dict{String,Vector{String}}(),
-            harness.rules_by_id(),
+            asp_julia.rules_by_id(),
         )
         @test length(findings) == 1
-        @test findings[1].rule_id == harness.AGENT_JL_R009
+        @test findings[1].rule_id == asp_julia.AGENT_JL_R009
     end
 end
 
 @testset "test throws call names use bounded lexical projection" begin
-    harness = AspJulia
-    call_names(expression) = harness.test_throws_call_names(
-        harness.JuliaTestSyntax(
+    asp_julia = AspJulia
+    call_names(expression) = asp_julia.test_throws_call_names(
+        asp_julia.JuliaTestSyntax(
             1,
             1,
             "test_throws",
@@ -80,9 +80,9 @@ end
 end
 
 @testset "inferred call names reuse bounded lexical projection" begin
-    harness = AspJulia
-    call_names(expression) = harness.inferred_test_call_names(
-        harness.JuliaTestSyntax(
+    asp_julia = AspJulia
+    call_names(expression) = asp_julia.inferred_test_call_names(
+        asp_julia.JuliaTestSyntax(
             1,
             1,
             "inferred",
@@ -130,16 +130,16 @@ end
             """,
         )
 
-        harness = AspJulia
-        scope = harness.julia_project_harness_scope(
+        asp_julia = AspJulia
+        scope = asp_julia.asp_julia_workspace_scope(
             root,
-            harness.default_julia_harness_config(),
+            asp_julia.default_asp_julia_config(),
         )
-        application = harness.moshi_nearest_application(
+        application = asp_julia.moshi_nearest_application(
             scope,
-            [harness.parse_julia_file(owner)],
+            [asp_julia.parse_julia_file(owner)],
         )
-        @test application isa harness.MoshiNearestApplication
+        @test application isa asp_julia.MoshiNearestApplication
         @test application.path == owner
         @test application.function_name == "route"
         @test application.domain_args == ["kind"]
@@ -149,8 +149,8 @@ end
 end
 
 @testset "testset display names use explicit typed escaping" begin
-    harness = AspJulia
-    test_fact(label) = harness.JuliaTestSyntax(
+    asp_julia = AspJulia
+    test_fact(label) = asp_julia.JuliaTestSyntax(
         1,
         1,
         "testset",
@@ -164,36 +164,36 @@ end
         "",
     )
 
-    @test harness.display_testset_name(test_fact(nothing)) == "fallback_name"
-    @test harness.display_testset_name(test_fact("simple")) == "\"simple\""
-    @test harness.display_testset_name(test_fact("quoted \"name\"")) ==
+    @test asp_julia.display_testset_name(test_fact(nothing)) == "fallback_name"
+    @test asp_julia.display_testset_name(test_fact("simple")) == "\"simple\""
+    @test asp_julia.display_testset_name(test_fact("quoted \"name\"")) ==
           "\"quoted \\\"name\\\"\""
-    @test harness.display_testset_name(test_fact("first\nsecond")) ==
+    @test asp_julia.display_testset_name(test_fact("first\nsecond")) ==
           "\"first second\""
 end
 
 @testset "generic owner segments use normalized root prefixes" begin
     mktempdir() do root
-        harness = AspJulia
+        asp_julia = AspJulia
         source_root = joinpath(root, "src")
 
-        @test harness.first_generic_owner_segment(
+        @test asp_julia.first_generic_owner_segment(
             source_root,
             joinpath(source_root, "utils", "value.jl"),
         ) == "utils"
-        @test harness.first_generic_owner_segment(
+        @test asp_julia.first_generic_owner_segment(
             source_root,
             joinpath(source_root, "domain", "Helpers", "value.jl"),
         ) == "Helpers"
-        @test harness.first_generic_owner_segment(
+        @test asp_julia.first_generic_owner_segment(
             source_root,
             joinpath(source_root, "value.jl"),
         ) === nothing
-        @test harness.first_generic_owner_segment(
+        @test asp_julia.first_generic_owner_segment(
             source_root,
             joinpath(root, "outside", "utils", "value.jl"),
         ) === nothing
-        @test harness.first_generic_owner_segment(
+        @test asp_julia.first_generic_owner_segment(
             source_root,
             joinpath(root, "src-extra", "utils", "value.jl"),
         ) === nothing
@@ -201,13 +201,13 @@ end
 end
 
 @testset "stdlib import roots use typed installed-project projection" begin
-    harness = AspJulia
-    roots = harness.julia_stdlib_import_roots()
+    asp_julia = AspJulia
+    roots = asp_julia.julia_stdlib_import_roots()
     expected = Set{String}()
     for stdlib_dir::String in readdir(Sys.STDLIB; join = true)
         project_path::String = joinpath(stdlib_dir, "Project.toml")
         isfile(project_path) || continue
-        project::Dict{String,Any} = harness.TOML.parsefile(project_path)
+        project::Dict{String,Any} = asp_julia.TOML.parsefile(project_path)
         name::String = project["name"]::String
         uuid::Base.UUID = Base.UUID(project["uuid"]::String)
         @test Base.is_stdlib(Base.PkgId(uuid, name))
@@ -224,21 +224,21 @@ end
 end
 
 @testset "project policy path ownership uses normalized root prefixes" begin
-    harness = AspJulia
+    asp_julia = AspJulia
     root = joinpath(tempdir(), "asp-project-policy-root")
 
-    @test harness.project_policy_path_under(root, root)
-    @test harness.project_policy_path_under(joinpath(root, "src", "owner.jl"), root)
-    @test harness.project_policy_path_under(joinpath(root, "src", "..", "test"), root)
-    @test !harness.project_policy_path_under(string(root, "-sibling"), root)
-    @test !harness.project_policy_path_under(joinpath(root, "..", "outside"), root)
+    @test asp_julia.project_policy_path_under(root, root)
+    @test asp_julia.project_policy_path_under(joinpath(root, "src", "owner.jl"), root)
+    @test asp_julia.project_policy_path_under(joinpath(root, "src", "..", "test"), root)
+    @test !asp_julia.project_policy_path_under(string(root, "-sibling"), root)
+    @test !asp_julia.project_policy_path_under(joinpath(root, "..", "outside"), root)
 end
 
 @testset "Julia source parse errors use typed formatting boundaries" begin
-    harness = AspJulia
+    asp_julia = AspJulia
     mktempdir() do root
         missing_path = joinpath(root, "missing.jl")
-        missing = harness.parse_julia_file(missing_path)
+        missing = asp_julia.parse_julia_file(missing_path)
         @test !missing.report.is_valid
         @test startswith(
             missing.report.parse_error::String,
@@ -247,7 +247,7 @@ end
 
         invalid_path = joinpath(root, "invalid.jl")
         write(invalid_path, "function (")
-        invalid = harness.parse_julia_file(invalid_path)
+        invalid = asp_julia.parse_julia_file(invalid_path)
         @test !invalid.report.is_valid
         @test startswith(invalid.report.parse_error::String, "ParseError:")
         @test occursin("Expected `)` or `,`", invalid.report.parse_error::String)
@@ -255,8 +255,8 @@ end
 end
 
 @testset "literal path arguments use typed segment folding" begin
-    harness = AspJulia
-    syntax = harness.JuliaSyntax
+    asp_julia = AspJulia
+    syntax = asp_julia.JuliaSyntax
 
     literal = syntax.parsestmt(syntax.SyntaxNode, "\"literal.jl\"")
     joined = syntax.parsestmt(
@@ -267,10 +267,10 @@ end
     empty = syntax.parsestmt(syntax.SyntaxNode, "joinpath()")
     other = syntax.parsestmt(syntax.SyntaxNode, "other(\"src\")")
 
-    @test harness.literal_path_argument(literal) == "literal.jl"
-    @test harness.literal_path_argument(joined) ==
+    @test asp_julia.literal_path_argument(literal) == "literal.jl"
+    @test asp_julia.literal_path_argument(joined) ==
           joinpath("src", "nested", "file.jl")
-    @test isnothing(harness.literal_path_argument(dynamic))
-    @test isnothing(harness.literal_path_argument(empty))
-    @test isnothing(harness.literal_path_argument(other))
+    @test isnothing(asp_julia.literal_path_argument(dynamic))
+    @test isnothing(asp_julia.literal_path_argument(empty))
+    @test isnothing(asp_julia.literal_path_argument(other))
 end

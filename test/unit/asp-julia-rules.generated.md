@@ -1,8 +1,8 @@
-# AspJulia.jl
+# ASP Julia
 
-## Harness Rules
+## ASP Julia Rules
 
-Generated from embedded `src/harness-rules.md`.
+Generated from embedded `src/asp-julia-rules.md`.
 
 - **AGENT-JL-R001**: Requires exported or public Julia APIs to carry intent docstrings for native syntax reasoning.
 - **AGENT-JL-R002**: Replaces broad public Julia positional argument surfaces with keyword options or named config objects.
@@ -17,7 +17,7 @@ Generated from embedded `src/harness-rules.md`.
 - **AGENT-JL-R011**: Requires exported Julia struct fields to carry explicit type annotations.
 - **AGENT-JL-R012**: Replaces stringly exported Julia struct fields with symbols, enums, or named value carriers.
 - **AGENT-JL-R013**: Requires exported mutable Julia types to document mutation ownership, lifecycle, or invariants.
-- **AGENT-JL-R014**: Requires Julia packages depending on the harness to mount the harness verification profile in package tests.
+- **AGENT-JL-R014**: Requires Julia packages depending on ASP Julia to mount the ASP Julia verification profile in package tests.
 - **AGENT-JL-R015**: Extracts internal nested traversal scaffolding into named iterators, predicates, or data helpers.
 - **AGENT-JL-R016**: Requires exported mutating Julia methods to document mutated state or arguments.
 - **AGENT-JL-R017**: Requires unsafe Julia constructs to document safety or performance evidence.
@@ -55,4 +55,4 @@ Generated from embedded `src/harness-rules.md`.
 - **JULIA-AGENT-PROJECT-011**: Requires Julia extension entries to resolve to extension entry files.
 - **JULIA-AGENT-PROJECT-012**: Requires Julia extension trigger dependencies to be declared.
 - **JULIA-AGENT-PROJECT-013**: Requires Project.toml to be readable by Pkg.
-- **JULIA-AGENT-PROJECT-014**: Requires harness config escapes to carry concrete explanations.
+- **JULIA-AGENT-PROJECT-014**: Requires ASP Julia config escapes to carry concrete explanations.

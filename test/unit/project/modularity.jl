@@ -13,8 +13,8 @@
     )
     write(joinpath(root, "src", "orphan.jl"), "value() = 1\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R003", rendered)
@@ -32,8 +32,8 @@ end
     body = join(["value$(index) = $(index)" for index in 1:121], "\n")
     write(joinpath(root, "src", "Example.jl"), "module Example\n$(body)\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R001", rendered)
@@ -49,8 +49,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\ninclude(\"api.jl\")\nend\n")
     write(joinpath(root, "src", "api.jl"), "$(body)\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R002", rendered)
@@ -68,8 +68,8 @@ end
     write(joinpath(root, "test", "runtests.jl"), "using Test\ninclude(\"unit/api.jl\")\n")
     write(joinpath(root, "test", "unit", "api.jl"), "$(body)\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R002", rendered)
@@ -103,8 +103,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "ext", "ExampleJSONExt.jl"), "module ExampleJSONExt\n$(body)\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R002", rendered)
@@ -120,8 +120,8 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\ninclude(\"utils/helpers.jl\")\nend\n")
     write(joinpath(root, "src", "utils", "helpers.jl"), "value() = 1\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R007", rendered)
@@ -137,8 +137,8 @@ end
     write(joinpath(root, "src", "a.jl"), "include(\"b.jl\")\n")
     write(joinpath(root, "src", "b.jl"), "include(\"a.jl\")\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R005", rendered)

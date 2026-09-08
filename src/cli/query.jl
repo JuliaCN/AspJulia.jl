@@ -1,4 +1,4 @@
-function run_julia_harness_query_cli(
+function run_asp_julia_query_cli(
     _args::Vector{String};
     out::IO = stdout,
 )

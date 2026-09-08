@@ -41,7 +41,7 @@ function public_api_doc_findings(
 end
 
 function public_method_family_scattering_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},

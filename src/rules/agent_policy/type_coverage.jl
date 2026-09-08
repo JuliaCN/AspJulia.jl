@@ -1,7 +1,7 @@
 const MIN_PUBLIC_GENERIC_TEST_INPUT_TYPES = 2
 
 function public_generic_type_coverage_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
@@ -47,7 +47,7 @@ function is_public_generic_method(
 end
 
 function test_literal_input_types_by_call_name(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     input_types_by_name = Dict{String,Set{String}}()

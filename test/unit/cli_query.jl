@@ -6,12 +6,12 @@ using Test
     write_cli_project(root)
     out = IOBuffer()
 
-    rendered = @inferred AspJulia.render_julia_native_owner_items_query_json(
+    rendered = @inferred AspJulia.render_asp_julia_native_owner_items_query_json(
         "src/CliExample.jl",
         ["run"],
         root,
     )
-    status = @inferred AspJulia.run_julia_native_owner_items_query_cli(
+    status = @inferred AspJulia.run_asp_julia_native_owner_items_query_cli(
         "src/CliExample.jl",
         ["run"],
         root,
@@ -27,12 +27,12 @@ using Test
     @test packet["ownerPath"] == "src/CliExample.jl"
     @test packet["queryTerms"] == ["run"]
     @test any(match -> match["name"] == "run", packet["matches"])
-    @test_throws ErrorException AspJulia.render_julia_native_owner_items_query_json(
+    @test_throws ErrorException AspJulia.render_asp_julia_native_owner_items_query_json(
         "src/CliExample.jl",
         String[],
         root,
     )
-    @test_throws ErrorException AspJulia.julia_query_owner_items_packet(
+    @test_throws ErrorException AspJulia.asp_julia_query_owner_items_packet(
         "src/CliExample.jl",
         String[];
         project_root=root,
@@ -58,10 +58,10 @@ end
 
     for args in legacy_arguments
         out = IOBuffer()
-        status = run_julia_project_harness_cli(args; out)
+        status = run_asp_julia_cli(args; out)
         rendered = String(take!(out))
         @test status == 2
-        @test occursin("does not declare typed native exact projection", rendered)
+        @test occursin("requires a parser-owned selector", rendered)
         @test !startswith(strip(rendered), "{")
     end
 end

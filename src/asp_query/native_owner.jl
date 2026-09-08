@@ -29,7 +29,7 @@ Returns a concrete `String` so the native CLI can write a single stable JSON
 payload without retaining JSON object wrappers. Throws `ErrorException` when
 the normalized query term list is empty.
 """
-function render_julia_native_owner_items_query_json(
+function render_asp_julia_native_owner_items_query_json(
     owner_path::String,
     query_terms::Vector{String},
     project_root::String,
@@ -80,14 +80,14 @@ end
 Returns the concrete process status `Int(0)` after the packet and terminating
 newline have been written to `out`.
 """
-function run_julia_native_owner_items_query_cli(
+function run_asp_julia_native_owner_items_query_cli(
     owner_path::String,
     query_terms::Vector{String},
     project_root::String,
     out::IO,
 )::Int
     rendered =
-        render_julia_native_owner_items_query_json(owner_path, query_terms, project_root)
+        render_asp_julia_native_owner_items_query_json(owner_path, query_terms, project_root)
     print(out, rendered)
     print(out, '\n')
     return 0

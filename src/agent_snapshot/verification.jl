@@ -1,7 +1,7 @@
 const MAX_AGENT_SNAPSHOT_VERIFICATION_TASKS = 10
 
 function snapshot_verification_lines(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     config::AspJuliaConfig,
 )
@@ -14,7 +14,7 @@ function snapshot_verification_lines(
 end
 
 function display_snapshot_verification_task(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     record::JuliaVerificationTaskRecord,
 )
     segments = [
@@ -32,7 +32,7 @@ function display_snapshot_verification_task(
 end
 
 function snapshot_verification_command(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     record::JuliaVerificationTaskRecord,
 )
     isempty(record.command) && return ""
@@ -40,7 +40,7 @@ function snapshot_verification_command(
 end
 
 function snapshot_verification_command_arg(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     arg::AbstractString,
 )
     text = String(arg)

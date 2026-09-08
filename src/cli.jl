@@ -1,5 +1,5 @@
 mutable struct AspJuliaCliOptions
-    project_root::String
+    workspace_root::String
     verification_tasks::Bool
     verification_tasks_json::Bool
     verification_profile::Bool
@@ -10,7 +10,7 @@ mutable struct AspJuliaCliOptions
     help::Bool
 end
 
-function default_julia_harness_cli_options()
+function default_asp_julia_cli_options()
     AspJuliaCliOptions(
         pwd(),
         false,
@@ -24,13 +24,13 @@ function default_julia_harness_cli_options()
     )
 end
 
-"""Run the Julia project harness command-line interface."""
-run_julia_project_harness_cli(args=ARGS; out=stdout, err=stderr) =
-    run_julia_project_harness_cli(args, out, err)
+"""Run the ASP Julia command-line interface."""
+run_asp_julia_cli(args=ARGS; out=stdout, err=stderr) =
+    run_asp_julia_cli(args, out, err)
 
-function run_julia_project_harness_cli(args, out::IO, err::IO)
+function run_asp_julia_cli(args, out::IO, err::IO)
     try
-        run_julia_project_harness_cli_checked(String.(collect(args)); out, err)
+        run_asp_julia_cli_checked(String.(collect(args)); out, err)
     catch caught
         println(err, "error: $(julia_cli_error_message(caught))")
         2
@@ -44,63 +44,63 @@ function julia_cli_error_message(caught)::String
     return "provider command failed"
 end
 
-run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout, err=stderr) =
-    run_julia_project_harness_cli_checked(args, out, err)
+run_asp_julia_cli_checked(args::Vector{String}; out=stdout, err=stderr) =
+    run_asp_julia_cli_checked(args, out, err)
 
-function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, err::IO)
+function run_asp_julia_cli_checked(args::Vector{String}, out::IO, err::IO)
     if args == ["serve"]
         return run_asp_client_server()
     end
     if !isempty(args) && first(args) == "query"
-        return run_julia_harness_query_cli(args[2:end]; out=out)
+        return run_asp_julia_query_cli(args[2:end]; out=out)
     end
-    protocol_status = run_julia_project_harness_protocol_cli(args; out)
+    protocol_status = run_asp_julia_protocol_cli(args; out)
     !isnothing(protocol_status) && return protocol_status
     isempty(args) && begin
-        print(out, julia_harness_cli_usage())
+        print(out, asp_julia_cli_usage())
         return 0
     end
 
-    options = parse_julia_harness_cli_args(args)
+    options = parse_asp_julia_cli_args(args)
     if options.help
-        print(out, julia_harness_cli_usage())
+        print(out, asp_julia_cli_usage())
         return 0
     end
-    validate_julia_harness_cli_options(options)
+    validate_asp_julia_cli_options(options)
     if options.verification_tasks
-        index = build_julia_verification_task_index(options.project_root)
-        print(out, render_julia_verification_task_index(index))
+        index = build_asp_julia_verification_task_index(options.workspace_root)
+        print(out, render_asp_julia_verification_task_index(index))
         return 0
     elseif options.verification_tasks_json
-        index = build_julia_verification_task_index(options.project_root)
-        print(out, render_julia_verification_task_index_json(index))
+        index = build_asp_julia_verification_task_index(options.workspace_root)
+        print(out, render_asp_julia_verification_task_index_json(index))
         print(out, "\n")
         return 0
     elseif options.verification_profile
-        profile = build_julia_project_verification_profile(options.project_root)
-        print(out, render_julia_verification_profile(profile))
+        profile = build_asp_julia_verification_profile(options.workspace_root)
+        print(out, render_asp_julia_verification_profile(profile))
         return 0
     elseif options.verification_profile_json
-        profile = build_julia_project_verification_profile(options.project_root)
-        print(out, render_julia_verification_profile_json(profile))
+        profile = build_asp_julia_verification_profile(options.workspace_root)
+        print(out, render_asp_julia_verification_profile_json(profile))
         print(out, "\n")
         return 0
     elseif options.verification_receipt_template
-        index = build_julia_verification_task_index(options.project_root)
-        print(out, render_julia_verification_receipt_template(index))
+        index = build_asp_julia_verification_task_index(options.workspace_root)
+        print(out, render_asp_julia_verification_receipt_template(index))
         print(out, "\n")
         return 0
     elseif !isnothing(options.verification_receipts_path)
-        index = build_julia_verification_task_index(options.project_root)
+        index = build_asp_julia_verification_task_index(options.workspace_root)
         receipts = read_julia_verification_receipts_json(options.verification_receipts_path)
-        reviews = review_julia_verification_receipts(index, receipts)
+        reviews = review_asp_julia_verification_receipts(index, receipts)
         if options.verification_receipts_json
-            print(out, render_julia_verification_receipt_reviews_json(reviews))
+            print(out, render_asp_julia_verification_receipt_reviews_json(reviews))
             print(out, "\n")
         else
             print(
                 out,
-                render_julia_verification_receipt_reviews(
+                render_asp_julia_verification_receipt_reviews(
                     reviews;
                     project_root=index.project_root,
                 ),
@@ -108,52 +108,78 @@ function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, er
         end
         return all(is_julia_verification_receipt_review_clean, reviews) ? 0 : 1
     end
-    error("project policy evaluation is available only through the AspJulia API")
+    error("policy evaluation is available only through the ASP Julia API")
 end
 
-function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout)
+function run_asp_julia_protocol_cli(args::Vector{String}; out=stdout)
     isempty(args) && return nothing
     command = first(args)
     if command == "guide"
-        project_root = length(args) >= 2 ? args[2] : pwd()
-        print(out, julia_harness_agent_guide(project_root))
+        workspace_root = length(args) >= 2 ? args[2] : pwd()
+        print(out, render_asp_julia_agent_guide(workspace_root))
         return 0
     elseif command == "agent"
         length(args) >= 2 || error("agent requires a subcommand")
         subcommand = args[2]
         if subcommand == "registry" || subcommand == "doctor"
             json = false
-            project_root = pwd()
+            workspace_root = pwd()
             for arg in args[3:end]
                 if arg == "--json"
                     json = true
                 elseif startswith(arg, "--")
                     error("unknown agent $(subcommand) option: $(arg)")
                 else
-                    project_root = arg
+                    workspace_root = arg
                 end
             end
             if json
-                print(out, render_julia_agent_registry_json(project_root))
+                print(out, render_asp_julia_agent_registry_json(workspace_root))
                 print(out, "\n")
             else
-                print(out, render_julia_agent_registry(project_root))
+                print(out, render_asp_julia_agent_registry(workspace_root))
             end
         else
             error("unknown agent subcommand: $(subcommand)")
         end
         return 0
     elseif command == "batch"
-        return run_julia_harness_batch_cli(args[2:end]; out)
+        return run_asp_julia_batch_cli(args[2:end]; out)
     elseif command == "evidence"
-        return run_julia_harness_evidence_cli(args[2:end]; out)
+        return run_asp_julia_evidence_cli(args[2:end]; out)
     elseif command == "export"
-        return run_julia_harness_export_cli(args[2:end]; out)
+        return run_asp_julia_export_cli(args[2:end]; out)
     end
     nothing
 end
 
-function run_julia_harness_batch_cli(args::Vector{String}; out=stdout)
+"""Render the agent-facing Julia provider guide.
+
+The root ASP Client owns search composition. The Julia provider advertises its
+remaining evidence routes and sends discovery back through that public
+playbook instead of retaining a provider-local search surface.
+"""
+function render_asp_julia_agent_guide(workspace_root::AbstractString)
+    root = abspath(String(workspace_root))
+    workspace = "--workspace <workspace-root>"
+    """
+    [asp-julia-guide] workspace=$(root)
+    |catalog provider=native-facts routes=search-playbook,evidence-graph,evidence-analyze
+    |route search-playbook returns=candidates,native-syntax,lexical-rank,graph-expansion cmd=asp julia search playbook <query> $(workspace)
+    |cmd playbook=asp julia search playbook <query> $(workspace)
+    |cmd evidence-graph=asp julia evidence graph --json $(workspace)
+    |cmd evidence-analyze=asp julia evidence analyze --json $(workspace)
+    |policy authority=AspJulia-api trigger=Pkg.test
+    |rule agent hook install/runtime is owned by asp
+    |rule exact query requires a parser-owned selector; Julia does not yet declare typed native exact projection
+    |rule the root ASP Client owns the only public search surface; provider-local search views are removed
+    |rule native JuliaSyntax facts remain provider-owned inputs to the root search playbook
+    |rule use the asp julia facade; run one command at a time; no raw Julia source reads
+    |subagent give one |cmd line; require evidence/missing/next/risk
+    """
+end
+
+function run_asp_julia_batch_cli(args::Vector{String}; out=stdout)
     isempty(args) || error("batch does not accept positional arguments")
     status = 0
     for (index, line) in enumerate(split(read(stdin, String), '\n'))
@@ -161,7 +187,7 @@ function run_julia_harness_batch_cli(args::Vector{String}; out=stdout)
         step_args = String.(split(line, '\t'; keepempty=false))
         buffer = IOBuffer()
         started = time_ns()
-        step_status = run_julia_project_harness_protocol_cli(step_args; out=buffer)
+        step_status = run_asp_julia_protocol_cli(step_args; out=buffer)
         elapsed_ms = round(Int, (time_ns() - started) / 1_000_000)
         isnothing(step_status) && error("batch step $(index) must be a protocol command")
         step_output = String(take!(buffer))
@@ -174,8 +200,8 @@ function run_julia_harness_batch_cli(args::Vector{String}; out=stdout)
     status
 end
 
-function parse_julia_harness_cli_args(args::Vector{String})
-    options = default_julia_harness_cli_options()
+function parse_asp_julia_cli_args(args::Vector{String})
+    options = default_asp_julia_cli_options()
     positionals = String[]
     index = 1
     while index <= length(args)
@@ -208,12 +234,12 @@ function parse_julia_harness_cli_args(args::Vector{String})
         end
         index += 1
     end
-    length(positionals) <= 1 || error("expected at most one PROJECT_ROOT")
-    !isempty(positionals) && (options.project_root = only(positionals))
+    length(positionals) <= 1 || error("expected at most one WORKSPACE_ROOT")
+    !isempty(positionals) && (options.workspace_root = only(positionals))
     options
 end
 
-function validate_julia_harness_cli_options(options::AspJuliaCliOptions)
+function validate_asp_julia_cli_options(options::AspJuliaCliOptions)
     modes = count(identity, [
         options.verification_tasks,
         options.verification_tasks_json,
@@ -226,9 +252,9 @@ function validate_julia_harness_cli_options(options::AspJuliaCliOptions)
     options
 end
 
-function julia_harness_cli_usage()
+function asp_julia_cli_usage()
     """
-    asp-julia [guide | agent doctor --json | evidence graph --json | evidence analyze --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE] [options] [PROJECT_ROOT]
+    asp-julia [guide | agent doctor --json | evidence graph --json | evidence analyze --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE] [options] [WORKSPACE_ROOT]
 
     Use guide to print provider-owned agent commands.
     Use evidence graph --json to emit a semantic-evidence-graph packet.

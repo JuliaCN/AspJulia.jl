@@ -1,5 +1,5 @@
 function verification_search_entries(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     config::AspJuliaConfig,
     parsed_files::Vector{ParsedJuliaFile},
 )
@@ -10,7 +10,7 @@ function verification_search_entries(
 end
 
 function verification_search_entry(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     record::JuliaVerificationTaskRecord,
 )
     owner = verification_owner_fingerprint_part(scope, record.owner_path)
@@ -26,7 +26,7 @@ function verification_search_entry(
 end
 
 function verification_search_detail(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     record::JuliaVerificationTaskRecord,
     owner::AbstractString,
 )
@@ -47,14 +47,14 @@ function verification_search_detail(
 end
 
 function verification_search_command(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     record::JuliaVerificationTaskRecord,
 )
     join(shell_quote_arg.(verification_search_command_arg.(Ref(scope), record.command)), " ")
 end
 
 function verification_search_command_arg(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     arg::AbstractString,
 )
     text = String(arg)

@@ -1,4 +1,4 @@
-# Julia Syntax Harness Alignment Design
+# ASP Julia Alignment Design
 
 Status: ready for user review
 Date: 2026-05-20
@@ -6,19 +6,19 @@ Repository: `asp-julia`
 
 ## Purpose
 
-This design starts a Julia project harness that learns from the
-`rust-lang-project-harness` without copying Rust-specific rules into Julia.
+This design starts ASP Julia by learning from Rust provider experience without
+copying Rust-specific rules into Julia.
 
-The goal is a Julia-native, parser-first, repair-oriented harness for coding
+The goal is a Julia-native, parser-first, repair-oriented provider for coding
 agents. It should help an agent understand a Julia package through stable
 project facts, compact findings, and a low-noise reasoning snapshot. The
-harness is not a replacement for Julia, `Pkg.test`, formatting tools, or static
+ASP Julia is not a replacement for Julia, `Pkg.test`, formatting tools, or static
 analysis packages. It is a structural policy layer that makes the next repair
 action visible.
 
 ## Design Posture
 
-The Rust harness is an experience source, not a template.
+The Rust provider is an experience source, not a template.
 
 The reusable experience is:
 
@@ -333,15 +333,15 @@ policy, parsing, or search behavior.
 
 ## Verification Task Index
 
-The Julia harness should expose a compact verification task index so agents can
+ASP Julia should expose a compact verification task index so agents can
 plan the next validation step without inferring it from policy text.
 
 The first Julia-native task families are:
 
 - `pkg_test`: run `Pkg.test()` from the discovered `Project.toml` root;
-- `harness_policy`: run the package harness self-policy gate when the package
-  depends on this harness;
-- `syntax_search`: smoke the JuliaSyntax-derived search index when this harness
+- `asp_julia_policy`: run the ASP Julia self-policy gate when the package
+  depends on ASP Julia;
+- `syntax_search`: smoke the JuliaSyntax-derived search index when ASP Julia
   is available in the project;
 - `extension_boundary`: run package tests with package extension weakdeps in
   scope; if the extension weakdeps are not mounted in the test target, emit
@@ -533,44 +533,44 @@ JuliaSyntax facts are present and the tests lock the emitted advice.
 The package should expose a library-first API:
 
 ```julia
-default_julia_harness_config()
-run_julia_project_harness(project_root::AbstractString; config=default_julia_harness_config())
-run_julia_lang_harness(paths::Vector{<:AbstractString}; config=default_julia_harness_config())
-assert_julia_project_harness_clean(project_root::AbstractString; config=default_julia_harness_config())
-assert_julia_project_harness_pkg_test_clean(project_root::AbstractString; config=default_julia_harness_config())
-build_julia_project_verification_profile(project_root::AbstractString=pwd(); config=default_julia_harness_config())
-build_julia_verification_profile_index(project_root::AbstractString; config=default_julia_harness_config())
-assert_julia_project_harness_test_profile_clean(project_root::AbstractString=pwd(); config=default_julia_harness_config(), advice_io=stdout)
-render_julia_project_harness(report)
-render_julia_project_harness_json(report)
-render_julia_project_harness_advice(report)
-render_julia_project_harness_agent_snapshot(project_root::AbstractString; config=default_julia_harness_config())
+default_asp_julia_config()
+run_asp_julia_workspace(project_root::AbstractString; config=default_asp_julia_config())
+run_asp_julia_paths(paths::Vector{<:AbstractString}; config=default_asp_julia_config())
+assert_asp_julia_workspace_clean(project_root::AbstractString; config=default_asp_julia_config())
+assert_asp_julia_pkg_test_clean(project_root::AbstractString; config=default_asp_julia_config())
+build_asp_julia_verification_profile(project_root::AbstractString=pwd(); config=default_asp_julia_config())
+build_asp_julia_verification_profile_index(project_root::AbstractString; config=default_asp_julia_config())
+assert_asp_julia_test_profile_clean(project_root::AbstractString=pwd(); config=default_asp_julia_config(), advice_io=stdout)
+render_asp_julia_report(report)
+render_asp_julia_report_json(report)
+render_asp_julia_advice(report)
+render_asp_julia_agent_snapshot(project_root::AbstractString; config=default_asp_julia_config())
 render_julia_search_results(results::Vector{JuliaSearchResult}; project_root=nothing)
-build_julia_verification_task_index(project_root::AbstractString; config=default_julia_harness_config())
-render_julia_verification_profile(profile::JuliaVerificationProfile)
-render_julia_verification_profile_json(profile::JuliaVerificationProfile)
-render_julia_verification_profile_index(index::JuliaVerificationProfileIndex)
-render_julia_verification_profile_index_json(index::JuliaVerificationProfileIndex)
-render_julia_verification_pending_advice(profile::JuliaVerificationProfile)
-render_julia_verification_task_index(index::JuliaVerificationTaskIndex)
-render_julia_verification_task_index_json(index::JuliaVerificationTaskIndex)
-render_julia_verification_receipt_template(index::JuliaVerificationTaskIndex)
+build_asp_julia_verification_task_index(project_root::AbstractString; config=default_asp_julia_config())
+render_asp_julia_verification_profile(profile::JuliaVerificationProfile)
+render_asp_julia_verification_profile_json(profile::JuliaVerificationProfile)
+render_asp_julia_verification_profile_index(index::JuliaVerificationProfileIndex)
+render_asp_julia_verification_profile_index_json(index::JuliaVerificationProfileIndex)
+render_asp_julia_verification_pending_advice(profile::JuliaVerificationProfile)
+render_asp_julia_verification_task_index(index::JuliaVerificationTaskIndex)
+render_asp_julia_verification_task_index_json(index::JuliaVerificationTaskIndex)
+render_asp_julia_verification_receipt_template(index::JuliaVerificationTaskIndex)
 read_julia_verification_receipts_json(path::AbstractString)
-review_julia_verification_receipts(index::JuliaVerificationTaskIndex, receipts)
-assert_julia_verification_receipts_accepted(index::JuliaVerificationTaskIndex, receipts)
-render_julia_verification_receipt_reviews(reviews::Vector{JuliaVerificationReceiptReview})
-render_julia_verification_receipt_reviews_json(reviews::Vector{JuliaVerificationReceiptReview})
-julia_project_search_index(project_root::AbstractString; config=default_julia_harness_config())
-julia_lang_search_index(paths::Vector{<:AbstractString}; config=default_julia_harness_config())
-search_julia_index(entries::Vector{JuliaSearchIndexEntry}, query::AbstractString; tags=String[], limit=25)
-search_julia_project(project_root::AbstractString, query::AbstractString; config=default_julia_harness_config(), tags=String[], limit=25)
-search_julia_lang(paths::Vector{<:AbstractString}, query::AbstractString; config=default_julia_harness_config(), tags=String[], limit=25)
-run_julia_project_harness_cli(args=ARGS; out=stdout, err=stderr)
-julia_rule_pack_descriptors()
-julia_syntax_rules()
-julia_project_policy_rules()
-julia_modularity_rules()
-julia_agent_policy_rules()
+review_asp_julia_verification_receipts(index::JuliaVerificationTaskIndex, receipts)
+assert_asp_julia_verification_receipts_accepted(index::JuliaVerificationTaskIndex, receipts)
+render_asp_julia_verification_receipt_reviews(reviews::Vector{JuliaVerificationReceiptReview})
+render_asp_julia_verification_receipt_reviews_json(reviews::Vector{JuliaVerificationReceiptReview})
+asp_julia_workspace_search_index(project_root::AbstractString; config=default_asp_julia_config())
+asp_julia_paths_search_index(paths::Vector{<:AbstractString}; config=default_asp_julia_config())
+search_asp_julia_index(entries::Vector{JuliaSearchIndexEntry}, query::AbstractString; tags=String[], limit=25)
+search_asp_julia_workspace(project_root::AbstractString, query::AbstractString; config=default_asp_julia_config(), tags=String[], limit=25)
+search_asp_julia_paths(paths::Vector{<:AbstractString}, query::AbstractString; config=default_asp_julia_config(), tags=String[], limit=25)
+run_asp_julia_workspace_cli(args=ARGS; out=stdout, err=stderr)
+asp_julia_rule_pack_descriptors()
+asp_julia_syntax_rules()
+asp_julia_package_policy_rules()
+asp_julia_modularity_rules()
+asp_julia_agent_policy_rules()
 ```
 
 The package test gate should be an ordinary Julia test assertion, for example:
@@ -579,9 +579,9 @@ The package test gate should be an ordinary Julia test assertion, for example:
 using Test
 using AspJulia
 
-@testset "julia project harness" begin
-    config = default_julia_harness_config()
-    assert_julia_project_harness_test_profile_clean(pkgdir(AspJulia); config)
+@testset "ASP Julia workspace" begin
+    config = default_asp_julia_config()
+    assert_asp_julia_test_profile_clean(pkgdir(AspJulia); config)
 end
 ```
 
@@ -605,7 +605,7 @@ The report model should be serializable and compact:
 - `JuliaVerificationTaskIndex`
 - `JuliaVerificationReceiptReview`
 - `JuliaVerificationProfile`
-- `JuliaProjectHarnessScope`
+- `AspJuliaWorkspaceScope`
 - `AspJuliaConfig`
 - `AspJuliaReport`
 
@@ -726,7 +726,7 @@ The CLI exposes this as `--verification-receipt-template`.
 The in-test verification profile should review the default project receipt file
 at `.asp-julia/verification-receipts.json` when it exists. A missing receipt
 file leaves external evidence tasks advisory, but an existing incomplete or
-mismatched receipt should fail `assert_julia_project_harness_test_profile_clean`
+mismatched receipt should fail `assert_asp_julia_test_profile_clean`
 and render the receipt review in the test failure. Accepted or concretely waived
 receipts should suppress the corresponding pending advice entry.
 

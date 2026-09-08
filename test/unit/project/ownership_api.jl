@@ -11,8 +11,8 @@
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R021", rendered)
@@ -37,8 +37,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R021", rendered)
@@ -58,8 +58,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R021", rendered)
@@ -80,8 +80,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R004", rendered)
@@ -117,8 +117,8 @@ end
         "Payload(value::String) = Payload(length(value))\n",
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R005", rendered)
@@ -154,7 +154,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -183,8 +183,8 @@ end
     )
     write(joinpath(root, "src", "fallbacks.jl"), "run(value::String) = value\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R009", rendered)
@@ -219,7 +219,7 @@ end
     )
     write(joinpath(root, "src", "fallbacks.jl"), "run(value::String) = value\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -247,8 +247,8 @@ end
         write(joinpath(root, "src", "owners", "$(name).jl"), "$(name)() = 1\n")
     end
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R006", rendered)
@@ -280,7 +280,7 @@ end
         write(joinpath(root, "src", "owners", "$(name).jl"), "$(name)() = 1\n")
     end
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))

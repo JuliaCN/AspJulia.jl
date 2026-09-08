@@ -3,7 +3,7 @@ const MAX_TESTSET_LOOP_NESTING_DEPTH = 2
 const MIN_TESTSET_BRANCH_COUNT = 1
 
 function test_control_flow_shape_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )

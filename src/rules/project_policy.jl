@@ -1,5 +1,5 @@
 function evaluate_project_policy_rules(
-    scope::Union{Nothing,JuliaProjectHarnessScope},
+    scope::Union{Nothing,AspJuliaWorkspaceScope},
     parsed_files::Vector{ParsedJuliaFile},
     config::AspJuliaConfig,
 )
@@ -68,7 +68,7 @@ function evaluate_project_policy_rules(
     findings
 end
 
-function expected_entry_file(scope::JuliaProjectHarnessScope)
+function expected_entry_file(scope::AspJuliaWorkspaceScope)
     if !isnothing(scope.project_entryfile)
         return scope.project_entryfile
     end
@@ -76,7 +76,7 @@ function expected_entry_file(scope::JuliaProjectHarnessScope)
 end
 
 function scope_explanation_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     config::AspJuliaConfig,
     rules::Dict{String,AspJuliaRule},
 )
@@ -131,7 +131,7 @@ function scope_explanation_findings(
 end
 
 function custom_scope_explanation_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     path_names::Vector{String},
     explanations::Dict{String,String},
     conventional_names::Set{String},
@@ -158,7 +158,7 @@ function custom_scope_explanation_findings(
 end
 
 function conventional_scope_exclusion_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     configured_names::Vector{String},
     explanations::Dict{String,String},
     conventional_name::AbstractString,
@@ -184,7 +184,7 @@ function conventional_scope_exclusion_findings(
 end
 
 function conventional_scope_is_monitored(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     full_path::AbstractString,
     label::AbstractString,
 )
@@ -197,7 +197,7 @@ function same_project_policy_path(left::AbstractString, right::AbstractString)
 end
 
 function pkg_owns_conventional_source_scope(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     conventional_path::AbstractString,
 )
     if !isnothing(scope.project_entryfile)
@@ -225,7 +225,7 @@ function has_path_explanation(
 end
 
 function test_entrypoint_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     rules::Dict{String,AspJuliaRule},
 )
     findings = AspJuliaFinding[]
@@ -247,7 +247,7 @@ function test_entrypoint_findings(
 end
 
 function thin_runtests_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -271,7 +271,7 @@ function thin_runtests_findings(
     findings
 end
 
-function is_runtests_file(scope::JuliaProjectHarnessScope, path::AbstractString)
+function is_runtests_file(scope::AspJuliaWorkspaceScope, path::AbstractString)
     any(test_path -> normpath(path) == normpath(joinpath(test_path, "runtests.jl")), scope.test_paths)
 end
 
@@ -280,7 +280,7 @@ function has_literal_includes(parsed::ParsedJuliaFile)
 end
 
 function source_rev_lock_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     rules::Dict{String,AspJuliaRule},
 )
     findings = AspJuliaFinding[]
@@ -317,7 +317,7 @@ function is_commit_rev(rev::AbstractString)
 end
 
 function dependency_contract_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     rules::Dict{String,AspJuliaRule},
 )
     stdlib_roots = julia_stdlib_import_roots()
@@ -345,7 +345,7 @@ function dependency_contract_findings(
 end
 
 function undeclared_import_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -374,7 +374,7 @@ function undeclared_import_findings(
 end
 
 function allowed_import_roots(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     path::AbstractString,
     stdlib_roots::Set{String},
 )
@@ -400,7 +400,7 @@ function imported_dependency_root(imported::JuliaImportSyntax)
     first(split(imported.root, "."))
 end
 
-function is_test_path(scope::JuliaProjectHarnessScope, path::AbstractString)
+function is_test_path(scope::AspJuliaWorkspaceScope, path::AbstractString)
     any(test_path -> is_path_under(path, test_path), scope.test_paths)
 end
 

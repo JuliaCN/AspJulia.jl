@@ -23,6 +23,6 @@ include("unit/cli_query_contract.jl")
     include("unit/rule_visibility.jl")
     include("unit/aot_rule_projections.jl")
     include("unit/type_coverage_lexical.jl")
-    include("unit/harness_rules.jl")
+    include("unit/asp_julia_rules.jl")
     include("unit/scenario_benchmark.jl")
 end

@@ -62,7 +62,7 @@ function public_failure_contract_findings(
 end
 
 function public_failure_test_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
@@ -133,7 +133,7 @@ function has_public_failure_contract_doc(
 end
 
 function test_throws_call_names_by_public_name(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     names = Set{String}()

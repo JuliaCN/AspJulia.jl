@@ -33,7 +33,7 @@ end
 Throws `ErrorException` when the schema root is missing or a schema document
 does not declare a string `schemaId`, `registryId`, or `\$id` identity.
 """
-function julia_schema_registrations(
+function asp_julia_schema_registrations(
     schema_root::AbstractString=joinpath(normpath(joinpath(@__DIR__, "..")), "schemas"),
 )
     isdir(schema_root) || error("schema root does not exist: $(schema_root)")
@@ -79,10 +79,10 @@ function julia_schema_registrations(
 end
 
 """Build the Julia semantic-language registry packet for client discovery."""
-function julia_agent_registry_packet(project_root::AbstractString=pwd())
+function asp_julia_agent_registry_packet(workspace_root::AbstractString=pwd())
     descriptors = julia_agent_method_descriptors()
     methods = sort!(unique(String(descriptor["method"]) for descriptor in descriptors))
-    root = abspath(String(project_root))
+    root = abspath(String(workspace_root))
     Dict(
         "registryId" => JULIA_AGENT_REGISTRY_ID,
         "registryVersion" => JULIA_AGENT_REGISTRY_VERSION,
@@ -96,23 +96,23 @@ function julia_agent_registry_packet(project_root::AbstractString=pwd())
                 "binary" => JULIA_AGENT_BINARY,
                 "providerCommandPrefix" => [JULIA_AGENT_BINARY],
                 "namespace" => JULIA_AGENT_PROVIDER_NAMESPACE,
-                "displayName" => "AspJulia.jl",
+                "displayName" => "ASP Julia",
                 "methods" => methods,
                 "methodDescriptors" => descriptors,
-                "schemas" => julia_schema_registrations(),
+                "schemas" => asp_julia_schema_registrations(),
             ),
         ],
     )
 end
 
 """Render the Julia semantic-language registry packet as JSON."""
-function render_julia_agent_registry_json(project_root::AbstractString=pwd())
-    JSON.json(julia_agent_registry_packet(project_root))
+function render_asp_julia_agent_registry_json(workspace_root::AbstractString=pwd())
+    JSON.json(asp_julia_agent_registry_packet(workspace_root))
 end
 
 """Render a compact Julia provider registry status line."""
-function render_julia_agent_registry(project_root::AbstractString=pwd())
-    packet = julia_agent_registry_packet(project_root)
+function render_asp_julia_agent_registry(workspace_root::AbstractString=pwd())
+    packet = asp_julia_agent_registry_packet(workspace_root)
     julia_language = only(filter(language -> language["languageId"] == JULIA_INDEX_EXPORT_LANGUAGE_ID, packet["languages"]))
-    "[julia-agent-registry] status=ok provider=$(julia_language["providerId"]) methods=$(length(julia_language["methods"])) schemas=$(length(julia_language["schemas"])) languages=$(length(packet["languages"])) project=$(packet["projectRoot"])\n"
+    "[asp-julia-agent-registry] status=ok provider=$(julia_language["providerId"]) methods=$(length(julia_language["methods"])) schemas=$(length(julia_language["schemas"])) languages=$(length(packet["languages"])) workspace=$(packet["projectRoot"])\n"
 end

@@ -61,8 +61,8 @@ const MAX_ENTRY_FACADE_NONBLANK_LINES = 120
 const MAX_SOURCE_FILE_NONBLANK_LINES = 400
 const MAX_THIN_RUNTESTS_NONBLANK_LINES = 80
 
-"""Return rule pack metadata for the Julia project harness."""
-function julia_rule_pack_descriptors()
+"""Return rule pack metadata for ASP Julia."""
+function asp_julia_rule_pack_descriptors()
     [
         RulePackDescriptor(JULIA_SYNTAX_PACK_ID, "1", ["julia", "syntax"], :blocking),
         RulePackDescriptor(
@@ -81,7 +81,7 @@ function labels(label::AbstractString)
 end
 
 """Return Julia syntax parse rules backed by JuliaSyntax.jl."""
-function julia_syntax_rules()
+function asp_julia_syntax_rules()
     [
         AspJuliaRule(
             JULIA_SYN_R001,
@@ -95,7 +95,7 @@ function julia_syntax_rules()
 end
 
 """Return Project.toml and package-layout policy rules."""
-julia_project_policy_rules() = [
+asp_julia_package_policy_rules() = [
     AspJuliaRule(
         JULIA_PROJ_R001,
         JULIA_PROJECT_POLICY_PACK_ID,
@@ -204,14 +204,14 @@ julia_project_policy_rules() = [
         JULIA_PROJ_R014,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
-        "Harness config escape lacks explanation",
-        "Harness config that disables rules, downgrades severity, shrinks blocking severities, or allows advisory findings must carry a concrete explanation.",
+        "ASP Julia config escape lacks explanation",
+        "ASP Julia config that disables rules, downgrades severity, shrinks blocking severities, or allows advisory findings must carry a concrete explanation.",
         labels("project-policy"),
     ),
 ]
 
 """Return source graph and file ownership policy rules."""
-julia_modularity_rules() = [
+asp_julia_modularity_rules() = [
     AspJuliaRule(
         JULIA_MOD_R001,
         JULIA_MODULARITY_PACK_ID,
@@ -271,16 +271,16 @@ julia_modularity_rules() = [
 ]
 
 function syntax_rule_by_id()
-    Dict(rule.rule_id => rule for rule in julia_syntax_rules())
+    Dict(rule.rule_id => rule for rule in asp_julia_syntax_rules())
 end
 
 function rules_by_id()
     Dict(
         rule.rule_id => rule for rule in vcat(
-            julia_syntax_rules(),
-            julia_project_policy_rules(),
-            julia_modularity_rules(),
-            julia_agent_policy_rules(),
+            asp_julia_syntax_rules(),
+            asp_julia_package_policy_rules(),
+            asp_julia_modularity_rules(),
+            asp_julia_agent_policy_rules(),
         )
     )
 end

@@ -8,7 +8,7 @@ struct MoshiNearestApplication
 end
 
 function moshi_policy_labels(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     application::Union{Nothing,MoshiNearestApplication},
     repair_target::AbstractString,
 )
@@ -30,7 +30,7 @@ function moshi_policy_labels(
 end
 
 function moshi_nearest_application(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )::Union{Nothing,MoshiNearestApplication}
     candidates = MoshiNearestApplication[]

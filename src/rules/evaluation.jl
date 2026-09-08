@@ -1,9 +1,9 @@
 function evaluate_default_rule_packs(
-    scope::Union{Nothing,JuliaProjectHarnessScope},
+    scope::Union{Nothing,AspJuliaWorkspaceScope},
     parsed_files::Vector{ParsedJuliaFile},
     config::AspJuliaConfig,
     ;
-    workspace_member_scopes=JuliaProjectHarnessScope[],
+    workspace_member_scopes=AspJuliaWorkspaceScope[],
 )
     findings = evaluate_syntax_rules(parsed_files)
     if !isnothing(scope)
@@ -18,7 +18,7 @@ function evaluate_default_rule_packs(
 end
 
 function parsed_files_for_scope(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     [
@@ -30,7 +30,7 @@ function parsed_files_for_scope(
 end
 
 function evaluate_agent_policy_rules(
-    scope::Union{Nothing,JuliaProjectHarnessScope},
+    scope::Union{Nothing,AspJuliaWorkspaceScope},
     parsed_files::Vector{ParsedJuliaFile},
 )
     isnothing(scope) && return AspJuliaFinding[]
@@ -137,7 +137,7 @@ const MIN_INTERNAL_TRAVERSAL_BRANCH_COUNT = 2
 const MAX_UNDOCUMENTED_MODULE_OWNER_INCLUDES = 4
 
 function internal_traversal_shape_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
@@ -176,7 +176,7 @@ function julia_algorithm_shape_summary(function_fact::JuliaFunctionSyntax)
 end
 
 function module_owner_fanout_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -208,7 +208,7 @@ function module_owner_fanout_findings(
     findings
 end
 
-function is_local_owner_include(scope::JuliaProjectHarnessScope, include::JuliaIncludeSyntax)
+function is_local_owner_include(scope::AspJuliaWorkspaceScope, include::JuliaIncludeSyntax)
     include.is_literal || return false
     isnothing(include.resolved_target) && return false
     any(root -> is_path_under(include.resolved_target, root), scope.source_paths)
@@ -224,7 +224,7 @@ function has_module_intent_doc(parsed::ParsedJuliaFile)
 end
 
 function public_api_owner_conflict_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
@@ -354,7 +354,7 @@ function push_public_api_definition!(
     )
 end
 
-function display_public_owner_path(scope::JuliaProjectHarnessScope, path::AbstractString)
+function display_public_owner_path(scope::AspJuliaWorkspaceScope, path::AbstractString)
     normalized_path = normalized_absolute_path(path)
     normalized_root = normalized_absolute_path(scope.project_root)
     if path_has_root_prefix(normalized_path, normalized_root)

@@ -135,7 +135,7 @@ function run_julia_batch_with_stdin(batch_input::AbstractString)
     status = try
         open(input_path, "r") do input
             redirect_stdin(input) do
-                AspJulia.run_julia_harness_batch_cli(String[]; out)
+                AspJulia.run_asp_julia_batch_cli(String[]; out)
             end
         end
     finally
@@ -172,7 +172,7 @@ end
         @test occursin("using Tables: ByRow", query_output)
 
         cli_out = IOBuffer()
-        cli_status = run_julia_project_harness_cli(
+        cli_status = run_asp_julia_cli(
             [
                 "query",
                 "--from-hook",

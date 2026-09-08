@@ -3,7 +3,7 @@ using Test
 @testset "legacy direct source read projection stays unavailable" begin
     project_root = normpath(joinpath(@__DIR__, "..", ".."))
     out = IOBuffer()
-    status = AspJulia.run_julia_harness_query_cli(
+    status = AspJulia.run_asp_julia_query_cli(
         [
             "--from-hook",
             "direct-source-read",
@@ -18,7 +18,7 @@ using Test
     rendered = String(take!(out))
 
     @test status == 2
-    @test occursin("does not declare typed native exact projection", rendered)
-    @test occursin("asp julia search owner", rendered)
+    @test occursin("requires a parser-owned selector", rendered)
+    @test occursin("asp julia search playbook", rendered)
     @test !occursin("semantic-read-packet", rendered)
 end

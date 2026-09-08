@@ -40,7 +40,7 @@ function run_owner_route(args::Vector{String}, out::NativeOutputIO, err::NativeO
     length(args) >= 3 || error("search owner requires an owner path")
     owner_path = args[3]
     options = AspJulia.parse_julia_search_args(args[4:end])
-    return Cint(AspJulia.run_julia_native_owner_items_query_cli(
+    return Cint(AspJulia.run_asp_julia_native_owner_items_query_cli(
         owner_path,
         options.query_terms,
         options.project_root,
@@ -97,12 +97,12 @@ run_export_route(
     out::NativeOutputIO,
     err::NativeOutputIO,
 )::Cint =
-    Cint(AspJulia.run_julia_harness_export_cli(args[2:end]; out))
+    Cint(AspJulia.run_asp_julia_export_cli(args[2:end]; out))
 
 function run_guide_route(args::Vector{String}, out::NativeOutputIO, err::NativeOutputIO)::Cint
     try
-        project_root = length(args) >= 3 ? args[3] : pwd()
-        print(out, AspJulia.julia_harness_agent_guide(project_root))
+        workspace_root = length(args) >= 3 ? args[3] : pwd()
+        print(out, AspJulia.render_asp_julia_agent_guide(workspace_root))
         return Cint(0)
     catch
         println(err, "error: guide route failed")

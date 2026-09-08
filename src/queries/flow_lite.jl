@@ -6,7 +6,7 @@ function julia_flow_lite_project_result(
     where::Dict{String,String},
 )
     root = abspath(String(project_root))
-    config = project_toml_harness_config(root, default_julia_harness_config())
+    config = asp_julia_project_config(root, default_asp_julia_config())
     files = discover_julia_files([root], config)
     scanned_functions = 0
     best_partial = nothing

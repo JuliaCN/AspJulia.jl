@@ -1,7 +1,7 @@
 const MAX_OWNER_SEARCH_ITEMS = 8
 
 function owner_search_entries(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     entries = [
@@ -12,7 +12,7 @@ function owner_search_entries(
     entries
 end
 
-function owner_search_entry(scope::JuliaProjectHarnessScope, parsed::ParsedJuliaFile)
+function owner_search_entry(scope::AspJuliaWorkspaceScope, parsed::ParsedJuliaFile)
     role = owner_search_role(scope, parsed.report.path)
     tags = owner_search_tags(role, parsed)
     search_index_entry(
@@ -27,7 +27,7 @@ function owner_search_entry(scope::JuliaProjectHarnessScope, parsed::ParsedJulia
 end
 
 function owner_search_detail(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
     role::AbstractString,
 )
@@ -43,7 +43,7 @@ function owner_search_detail(
     join(segments, " ")
 end
 
-function owner_search_role(scope::JuliaProjectHarnessScope, path::AbstractString)
+function owner_search_role(scope::AspJuliaWorkspaceScope, path::AbstractString)
     !isnothing(scope.package_entry_path) && path == scope.package_entry_path && return "entry"
     is_test_path(scope, path) && return "test"
     any(extension_path -> is_path_under(path, extension_path), scope.extension_paths) && return "extension"
@@ -53,7 +53,7 @@ function owner_search_role(scope::JuliaProjectHarnessScope, path::AbstractString
     "owner"
 end
 
-function package_search_role(scope::JuliaProjectHarnessScope, path::AbstractString)
+function package_search_role(scope::AspJuliaWorkspaceScope, path::AbstractString)
     for package_path in scope.package_paths
         is_path_under(path, package_path) || continue
         root = normpath(scope.project_root)
@@ -108,7 +108,7 @@ end
 owner_import_roots(parsed::ParsedJuliaFile) =
     [import_fact.root for import_fact in parsed.syntax_facts.imports]
 
-function owner_include_targets(scope::JuliaProjectHarnessScope, parsed::ParsedJuliaFile)
+function owner_include_targets(scope::AspJuliaWorkspaceScope, parsed::ParsedJuliaFile)
     [
         owner_search_path(scope, include_fact.resolved_target) for include_fact in
         parsed.syntax_facts.includes
@@ -147,7 +147,7 @@ function display_owner_test_label(label::AbstractString)
     "\"$(replace(String(label), "\"" => "\\\"", "\n" => " "))\""
 end
 
-function owner_search_path(scope::JuliaProjectHarnessScope, path::AbstractString)
+function owner_search_path(scope::AspJuliaWorkspaceScope, path::AbstractString)
     root = normpath(scope.project_root)
     owner = normpath(String(path))
     owner == root && return "."

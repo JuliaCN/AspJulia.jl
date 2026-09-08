@@ -30,14 +30,14 @@ end
     guide_out = IOBuffer()
 
     graph_status =
-        run_julia_project_harness_cli(["evidence", "graph", "--json", root]; out = graph_out)
-    analysis_status = run_julia_project_harness_cli(
+        run_asp_julia_cli(["evidence", "graph", "--json", root]; out = graph_out)
+    analysis_status = run_asp_julia_cli(
         ["evidence", "analyze", "--json", root];
         out = analysis_out,
     )
     registry_status =
-        run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = registry_out)
-    guide_status = run_julia_project_harness_cli(["guide", root]; out = guide_out)
+        run_asp_julia_cli(["agent", "doctor", "--json", root]; out = registry_out)
+    guide_status = run_asp_julia_cli(["guide", root]; out = guide_out)
     graph = JSON.parse(String(take!(graph_out)))
     analysis = JSON.parse(String(take!(analysis_out)))
     registry = JSON.parse(String(take!(registry_out)))

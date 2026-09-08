@@ -14,8 +14,8 @@
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("Project.toml enables Moshi support", rendered)
@@ -65,8 +65,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
     finding = only(
         finding for finding in AspJulia.advisory_findings(report) if
         get(finding.labels, "configured_policy", "") == "enable"
@@ -117,7 +117,7 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     write(joinpath(root, "ext", "ExampleMoshiExt.jl"), "module ExampleMoshiExt\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
     findings = [
         finding for finding in AspJulia.advisory_findings(report) if
         get(finding.labels, "configured_policy", "") == "enable"
@@ -150,7 +150,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing Moshi.Data: @data\nend\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty([

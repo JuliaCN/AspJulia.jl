@@ -36,7 +36,7 @@ const UNSAFE_CONSTRUCT_EVIDENCE_DOC_TOKENS = (
 )
 
 function unsafe_construct_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     rules::Dict{String,AspJuliaRule},
 )
@@ -52,7 +52,7 @@ function unsafe_construct_findings(
 end
 
 function public_unsafe_evidence_test_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     rules::Dict{String,AspJuliaRule},
@@ -166,7 +166,7 @@ function unsafe_constructs_for_function(
 end
 
 function tested_public_call_names(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     names = Set{String}()

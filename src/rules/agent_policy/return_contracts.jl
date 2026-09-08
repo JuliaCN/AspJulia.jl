@@ -46,7 +46,7 @@ function public_return_contract_findings(
 end
 
 function public_return_contract_test_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
@@ -101,7 +101,7 @@ function is_narrow_public_return_annotation(function_fact::JuliaFunctionSyntax)
 end
 
 function inferred_test_call_names(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     names = Set{String}()

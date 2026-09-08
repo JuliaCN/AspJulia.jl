@@ -173,7 +173,7 @@ function render_julia_projection_batch(header::Dict{String,Any})::Dict{String,An
             if parsed.report.is_valid
                 entries = julia_search_index(
                     ParsedJuliaFile[parsed];
-                    config=default_julia_harness_config(),
+                    config=default_asp_julia_config(),
                 )
                 project_julia_projection_batch_owner(owner, entries, project_root)
             else

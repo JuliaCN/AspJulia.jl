@@ -75,7 +75,7 @@ jobs:
       - name: Resolve JuliaC build project
         run: julia --project=juliac -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 
-      - name: Build compiled harness
+      - name: Build compiled ASP Julia provider
         run: ASP_JULIA_BUILD_DIR="$PWD/package" julia --project=juliac juliac/compile.jl
 
       - name: Package provider binary

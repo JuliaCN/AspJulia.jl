@@ -1,5 +1,5 @@
 """Return advisory rules that shape agent-friendly Julia APIs."""
-julia_agent_policy_rules() = [
+asp_julia_agent_policy_rules() = [
     AspJuliaRule(
         AGENT_JL_R001,
         JULIA_AGENT_POLICY_PACK_ID,
@@ -108,8 +108,8 @@ julia_agent_policy_rules() = [
         AGENT_JL_R014,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
-        "Pkg.test lacks the harness verification profile",
-        "Projects that depend on AspJulia should mount `assert_julia_project_harness_test_profile_clean` inside package tests so agents receive policy, search, and verification feedback during `Pkg.test`.",
+        "Pkg.test lacks the ASP Julia verification profile",
+        "Packages that depend on ASP Julia should mount `assert_asp_julia_test_profile_clean` inside package tests so agents receive policy, search, and verification feedback during `Pkg.test`.",
         labels("agent-policy"),
     ),
     AspJuliaRule(

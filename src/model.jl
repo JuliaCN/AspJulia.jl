@@ -5,14 +5,14 @@ severity_label(::Val{Warning}) = "warning"
 severity_label(::Val{Error}) = "error"
 severity_label(severity::JuliaDiagnosticSeverity) = severity_label(Val(severity))
 
-"""Source position for a parser fact or harness finding."""
+"""Source position for a parser fact or ASP Julia finding."""
 struct SourceLocation
     path::Union{Nothing,String}
     line::Int
     column::Int
 end
 
-"""Metadata for a rule pack exposed by the Julia project harness."""
+"""Metadata for a rule pack exposed by ASP Julia."""
 struct RulePackDescriptor
     id::String
     version::String
@@ -20,7 +20,7 @@ struct RulePackDescriptor
     default_mode::Symbol
 end
 
-"""Rule contract used to create project harness findings."""
+"""Rule contract used to create ASP Julia findings."""
 struct AspJuliaRule
     rule_id::String
     pack_id::String
@@ -30,7 +30,7 @@ struct AspJuliaRule
     labels::Dict{String,String}
 end
 
-"""Agent-facing visibility contract for one harness rule."""
+"""Agent-facing visibility contract for one ASP Julia rule."""
 struct JuliaRuleVisibility
     rule_id::String
     accepted_ast_shapes::Vector{String}
@@ -39,7 +39,7 @@ struct JuliaRuleVisibility
     repair_notes::Vector{String}
 end
 
-"""Concrete harness finding with source evidence and repair guidance."""
+"""Concrete ASP Julia finding with source evidence and repair guidance."""
 struct AspJuliaFinding
     rule_id::String
     pack_id::String
@@ -126,7 +126,7 @@ struct JuliaVerificationProfileIndex
 end
 
 """Pkg project scope resolved from Project.toml and Julia source layout."""
-struct JuliaProjectHarnessScope
+struct AspJuliaWorkspaceScope
     project_root::String
     project_toml_path::Union{Nothing,String}
     project_parse_error::Union{Nothing,String}
@@ -169,14 +169,14 @@ struct AspJuliaConfig
     agent_advice_allow_explanation::Union{Nothing,String}
 end
 
-"""Full harness run result with parsed files, findings, and project scope."""
+"""Full ASP Julia result with parsed files, findings, and workspace scope."""
 struct AspJuliaReport
     files::Vector{JuliaFileReport}
     findings::Vector{AspJuliaFinding}
     root_paths::Vector{String}
     blocking_severities::Set{JuliaDiagnosticSeverity}
-    project_resolution::Union{Nothing,JuliaProjectHarnessScope}
-    workspace_member_scopes::Vector{JuliaProjectHarnessScope}
+    project_resolution::Union{Nothing,AspJuliaWorkspaceScope}
+    workspace_member_scopes::Vector{AspJuliaWorkspaceScope}
 end
 
 """In-test verification profile for agent-facing package checks."""
@@ -202,8 +202,8 @@ const DEFAULT_IGNORED_DIR_NAMES = Set([
     "scratchspaces",
 ])
 
-"""Return the default Julia project harness configuration."""
-function default_julia_harness_config()
+"""Return the default ASP Julia configuration."""
+function default_asp_julia_config()
     AspJuliaConfig(
         union(copy(DEFAULT_IGNORED_DIR_NAMES), Set([".gerbil"])),
         Set([Warning, Error]),
@@ -245,14 +245,14 @@ end
 
 function assert_clean(report::AspJuliaReport)
     if !is_clean(report)
-        error(render_julia_project_harness(report))
+        error(render_asp_julia_report(report))
     end
     report
 end
 
 function assert_no_advisory_findings(report::AspJuliaReport)
     if !isempty(advisory_findings(report))
-        error(render_julia_project_harness(report))
+        error(render_asp_julia_report(report))
     end
     report
 end

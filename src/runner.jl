@@ -2,45 +2,45 @@ using Pkg
 using SHA
 using TOML
 
-"""Run the JuliaSyntax harness over explicit Julia source roots.
+"""Run ASP Julia over explicit Julia source roots.
 
 Errors if any requested source root does not exist.
 """
-function run_julia_lang_harness(paths::Vector{<:AbstractString}; config=default_julia_harness_config())
+function run_asp_julia_paths(paths::Vector{<:AbstractString}; config=default_asp_julia_config())
     for path in paths
-        ispath(path) || error("harness path does not exist: $(path)")
+        ispath(path) || error("ASP Julia path does not exist: $(path)")
     end
     run_paths(abspath.(String.(paths)), config)
 end
 
-"""Run the project harness from a Project.toml root resolved through Pkg facts.
+"""Run ASP Julia from a workspace root resolved through Pkg facts.
 
 Errors if `project_root` does not name an existing package path.
 """
-function run_julia_project_harness(project_root::AbstractString; config=default_julia_harness_config())
+function run_asp_julia_workspace(project_root::AbstractString; config=default_asp_julia_config())
     ispath(project_root) || error("project path does not exist: $(project_root)")
     context = project_policy_context(project_root, config)
-    harness_report_from_project_context(context, context.config)
+    asp_julia_report_from_workspace_context(context, context.config)
 end
 
-"""Run explicit paths and throw when blocking Julia harness findings exist."""
-function assert_julia_lang_harness_clean(paths::Vector{<:AbstractString}; config=default_julia_harness_config())
-    report = run_julia_lang_harness(paths; config)
+"""Run explicit paths and throw when blocking ASP Julia findings exist."""
+function assert_asp_julia_paths_clean(paths::Vector{<:AbstractString}; config=default_asp_julia_config())
+    report = run_asp_julia_paths(paths; config)
     assert_clean(report)
 end
 
-"""Run a Project.toml-rooted harness check and throw on blocking findings."""
-function assert_julia_project_harness_clean(project_root::AbstractString; config=default_julia_harness_config())
-    report = run_julia_project_harness(project_root; config)
+"""Run a workspace-scoped ASP Julia check and throw on blocking findings."""
+function assert_asp_julia_workspace_clean(project_root::AbstractString; config=default_asp_julia_config())
+    report = run_asp_julia_workspace(project_root; config)
     assert_clean(report)
 end
 
 """Run project policy plus advisory self-apply checks for package test gates."""
-function assert_julia_project_harness_pkg_test_clean(
+function assert_asp_julia_pkg_test_clean(
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
-    report = run_julia_project_harness(project_root; config)
+    report = run_asp_julia_workspace(project_root; config)
     effective_config = project_policy_context(project_root, config).config
     assert_clean(report)
     if !has_agent_advice_allow_explanation(effective_config)
@@ -53,20 +53,20 @@ function run_paths(
     paths::Vector{String},
     config::AspJuliaConfig;
     scope=nothing,
-    workspace_member_scopes=JuliaProjectHarnessScope[],
+    workspace_member_scopes=AspJuliaWorkspaceScope[],
 )
     parsed_files = parse_julia_files_for_paths(paths, config)
-    harness_report_from_parsed(paths, parsed_files, config; scope, workspace_member_scopes)
+    asp_julia_report_from_parsed(paths, parsed_files, config; scope, workspace_member_scopes)
 end
 
-function julia_project_harness_scope(project_root::AbstractString, config::AspJuliaConfig)
+function asp_julia_workspace_scope(project_root::AbstractString, config::AspJuliaConfig)
     project_facts = parse_project_toml_facts(project_root)
     root = project_facts.project_root
     source_paths = pkg_source_paths(root, project_facts, config)
     extension_paths = pkg_extension_paths(root, project_facts)
     test_paths = config.include_tests ? pkg_test_paths(root, project_facts, config) : String[]
     package_paths = pkg_package_paths(root)
-    JuliaProjectHarnessScope(
+    AspJuliaWorkspaceScope(
         root,
         project_facts.path,
         project_facts.parse_error,
@@ -92,16 +92,16 @@ function julia_project_harness_scope(project_root::AbstractString, config::AspJu
 end
 
 function julia_workspace_member_scopes(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     config::AspJuliaConfig,
 )
-    scopes = JuliaProjectHarnessScope[]
+    scopes = AspJuliaWorkspaceScope[]
     seen_roots = Set([scope.project_root])
     for project_path in pkg_member_project_paths(scope)
         member_root = isabspath(project_path) ? normpath(project_path) :
                       normpath(joinpath(scope.project_root, project_path))
         isdir(member_root) || continue
-        member_scope = julia_project_harness_scope(member_root, config)
+        member_scope = asp_julia_workspace_scope(member_root, config)
         member_scope.project_root in seen_roots && continue
         push!(seen_roots, member_scope.project_root)
         push!(scopes, member_scope)
@@ -109,12 +109,12 @@ function julia_workspace_member_scopes(
     scopes
 end
 
-function scope_monitored_paths(scope::JuliaProjectHarnessScope)
+function scope_monitored_paths(scope::AspJuliaWorkspaceScope)
     selected = vcat(scope.source_paths, scope.extension_paths, scope.test_paths)
     isempty(selected) ? [scope.project_root] : selected
 end
 
-function pkg_member_project_paths(scope::JuliaProjectHarnessScope)
+function pkg_member_project_paths(scope::AspJuliaWorkspaceScope)
     sort!(collect(Set(vcat(scope.workspace_projects, scope.source_dependency_projects))))
 end
 

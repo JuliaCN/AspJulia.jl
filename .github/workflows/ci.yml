@@ -49,7 +49,7 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - name: Resolve and load harness package
+      - name: Resolve and load ASP Julia
         env:
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
@@ -82,7 +82,7 @@ jobs:
             ${{ runner.os }}-self-apply-${{ env.cache-name }}-
             ${{ runner.os }}-self-apply-
             ${{ runner.os }}-
-      - name: Resolve and load harness package
+      - name: Resolve and load ASP Julia
         env:
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
@@ -92,7 +92,7 @@ jobs:
           JULIA_NUM_THREADS: "2"
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
-          julia --project=. -e 'using AspJulia; assert_julia_project_harness_test_profile_clean(pwd(); advice_io=stderr); println("self-profile-ok")'
+          julia --project=. -e 'using AspJulia; assert_asp_julia_test_profile_clean(pwd(); advice_io=stderr); println("self-profile-ok")'
 
   juliac_smoke:
     name: JuliaC app smoke - Julia 1.12 - ubuntu-latest

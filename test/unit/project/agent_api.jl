@@ -13,8 +13,8 @@
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R002", rendered)
@@ -37,8 +37,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R003", rendered)
@@ -60,8 +60,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R001", rendered)
@@ -83,8 +83,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R001", rendered)
@@ -107,7 +107,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -128,7 +128,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -153,8 +153,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R011", rendered)
@@ -182,7 +182,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -208,8 +208,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R012", rendered)
@@ -238,7 +238,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -261,8 +261,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R013", rendered)
@@ -291,7 +291,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))
@@ -315,8 +315,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
     @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R016", rendered)
@@ -357,7 +357,7 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
     @test AspJulia.is_clean(report)
     @test isempty(AspJulia.advisory_findings(report))

@@ -46,7 +46,7 @@ function write_verification_project(root::AbstractString)
         using Test
 
         @test true
-        assert_julia_project_harness_test_profile_clean(dirname(@__DIR__))
+        assert_asp_julia_test_profile_clean(dirname(@__DIR__))
         """,
     )
     write(joinpath(root, "ext", "VerifyJSONExt.jl"), "module VerifyJSONExt\nend\n")

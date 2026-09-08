@@ -236,7 +236,7 @@ Throws `ErrorException` when `query_terms` is empty after `|` splitting or when
 `match_limit` is negative. Callers must validate those public CLI inputs before
 publishing the packet.
 """
-function julia_query_owner_items_packet(
+function asp_julia_query_owner_items_packet(
     owner_path::AbstractString,
     query_terms::Vector{String};
     project_root::AbstractString=pwd(),
@@ -284,7 +284,7 @@ function julia_query_owner_items_packet(
     candidates = JuliaQueryCandidateItem[
         julia_query_candidate_item(candidate) for candidate in candidate_rows
     ]
-    scope = julia_project_harness_scope(root, default_julia_harness_config())
+    scope = asp_julia_workspace_scope(root, default_asp_julia_config())
     patch_safety::JuliaQueryPatchSafetyPacket = JuliaQueryPatchSafety(
         "read-safe",
         "Julia compact query output requires exact source read before editing",
@@ -344,7 +344,7 @@ function julia_query_owner_items_packet(
 end
 
 """Render Julia owner-local item lookup as shared semantic-query-packet JSON."""
-function render_julia_query_owner_items_json(
+function render_asp_julia_query_owner_items_json(
     owner_path::AbstractString,
     query_terms::Vector{String};
     project_root::AbstractString=pwd(),
@@ -354,7 +354,7 @@ function render_julia_query_owner_items_json(
     structural_selector=nothing,
 )
     JSON.json(
-        julia_query_owner_items_packet(
+        asp_julia_query_owner_items_packet(
             owner_path,
             query_terms;
             project_root,
@@ -369,7 +369,7 @@ end
 include("native_owner.jl")
 
 """Render Julia owner-local item lookup as compact line protocol."""
-function render_julia_query_owner_items(
+function render_asp_julia_query_owner_items(
     owner_path::AbstractString,
     query_terms::Vector{String};
     project_root::AbstractString=pwd(),
@@ -378,7 +378,7 @@ function render_julia_query_owner_items(
     match_limit::Int=25,
     structural_selector=nothing,
 )
-    packet = julia_query_owner_items_packet(
+    packet = asp_julia_query_owner_items_packet(
         owner_path,
         query_terms;
         project_root,

@@ -1,7 +1,7 @@
 @testset "type coverage reuses lexical call projection" begin
-    harness = AspJulia
-    classify(expression) = harness.literal_input_type_for_call(
-        harness.JuliaCallSyntax(1, 1, "f", "f", 1, String[], expression),
+    asp_julia = AspJulia
+    classify(expression) = asp_julia.literal_input_type_for_call(
+        asp_julia.JuliaCallSyntax(1, 1, "f", "f", 1, String[], expression),
     )
 
     expected = [
@@ -28,6 +28,6 @@
     @test classify("f(g(1))") === nothing
     @test classify("f(1 + 2)") === nothing
     @test classify("f(0x10)") === nothing
-    @test harness.first_call_argument_lexeme("f((1, 2), \"ignored\")") == "(1, 2)"
-    @test harness.first_call_argument_lexeme("f(\"a,b\", ignored)") == "\"a,b\""
+    @test asp_julia.first_call_argument_lexeme("f((1, 2), \"ignored\")") == "(1, 2)"
+    @test asp_julia.first_call_argument_lexeme("f(\"a,b\", ignored)") == "\"a,b\""
 end
