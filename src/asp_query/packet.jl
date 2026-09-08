@@ -275,7 +275,7 @@ function julia_query_owner_items_packet(
                 julia_query_match_row(pair.first, root; include_code),
             ),
         )
-        push!(native_syntax_facts, asp_search_index_fact(pair.first, root))
+        push!(native_syntax_facts, julia_native_syntax_fact(pair.first, root))
     end
     candidate_rows =
         total_matches == 0 ?

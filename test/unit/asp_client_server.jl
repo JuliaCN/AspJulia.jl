@@ -97,10 +97,41 @@ using Test
           "agent.semantic-protocols.provider-language-projection-batch-response"
     @test projection_payload["providerId"] == "asp-julia"
     @test only(projection_payload["owners"])["ownerPath"] == "src/projected.jl"
+    @test only(projection_payload["owners"])["projectionState"] == "ready"
+    @test only(projection_payload["owners"])["diagnostic"] === nothing
     @test any(
         item -> item["selector"] == "julia://src/projected.jl#item/function/projected",
         only(projection_payload["owners"])["items"],
     )
+
+    isolated_header = copy(projection_header)
+    isolated_header["owners"] = Any[
+        projection_header["owners"][1],
+        Dict{String,Any}(
+            "ownerPath" => "src/unavailable.jl",
+            "sourceLeafDigest" => "blake3-256:unavailable",
+            "sourceEncoding" => "utf8",
+            "sourceText" => "function unavailable(\n",
+        ),
+    ]
+    isolated_request = copy(projection_request)
+    isolated_request["requestId"] = "projection-batch-isolation"
+    isolated_request["payload"] = isolated_header
+    isolated_response = HTTP.post(
+        "$base_url/v1/provider-runtime",
+        ["Content-Type" => "application/json"],
+        JSON.json(isolated_request);
+        proxy=HTTP.ProxyConfig(),
+    )
+    isolated_frame = JSON.parse(String(isolated_response.body), Dict{String,Any})
+    @test isolated_frame["outcome"] == "ready"
+    ready_owner, unavailable_owner = isolated_frame["payload"]["owners"]
+    @test ready_owner["projectionState"] == "ready"
+    @test !isempty(ready_owner["items"])
+    @test unavailable_owner["projectionState"] == "syntax-unavailable"
+    @test unavailable_owner["diagnostic"]["reasonKind"] == "source-syntax-unavailable"
+    @test isempty(unavailable_owner["items"])
+    @test isempty(unavailable_owner["relations"])
 
     unknown = Dict{String,Any}(
         "schemaId" => "agent.semantic-protocols.provider-runtime-request-frame",

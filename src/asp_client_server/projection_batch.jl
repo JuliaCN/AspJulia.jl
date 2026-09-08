@@ -131,7 +131,30 @@ function project_julia_projection_batch_owner(
     return Dict{String,Any}(
         "ownerPath" => owner.path,
         "sourceLeafDigest" => owner.digest,
+        "projectionState" => "ready",
+        "diagnostic" => nothing,
         "items" => items,
+        "relations" => Any[],
+    )
+end
+
+function project_julia_syntax_unavailable_owner(
+    owner::JuliaProjectionBatchOwner,
+    message::AbstractString,
+)::Dict{String,Any}
+    diagnostic = isempty(message) ? "JuliaSyntax rejected the source owner" : String(message)
+    bounded_diagnostic = first(diagnostic, min(length(diagnostic), 4096))
+    return Dict{String,Any}(
+        "ownerPath" => owner.path,
+        "sourceLeafDigest" => owner.digest,
+        "projectionState" => "syntax-unavailable",
+        "diagnostic" => Dict{String,Any}(
+            "schemaId" => "agent.semantic-protocols.provider-language-projection-diagnostic",
+            "schemaVersion" => "1",
+            "reasonKind" => "source-syntax-unavailable",
+            "message" => bounded_diagnostic,
+        ),
+        "items" => Any[],
         "relations" => Any[],
     )
 end
@@ -144,8 +167,22 @@ function render_julia_projection_batch(header::Dict{String,Any})::Dict{String,An
             mkpath(dirname(target))
             write(target, owner.source)
         end
-        entries = julia_project_search_index(project_root; config=default_julia_harness_config())
-        [project_julia_projection_batch_owner(owner, entries, project_root) for owner in owners]
+        map(owners) do owner
+            target = joinpath(project_root, split(owner.path, '/')...)
+            parsed = parse_julia_file(target)
+            if parsed.report.is_valid
+                entries = julia_search_index(
+                    ParsedJuliaFile[parsed];
+                    config=default_julia_harness_config(),
+                )
+                project_julia_projection_batch_owner(owner, entries, project_root)
+            else
+                project_julia_syntax_unavailable_owner(
+                    owner,
+                    something(parsed.report.parse_error, "JuliaSyntax rejected the source owner"),
+                )
+            end
+        end
     end
     return Dict{String,Any}(
         "schemaId" => JULIA_PROJECTION_BATCH_RESPONSE_SCHEMA,

@@ -144,7 +144,7 @@ function run_julia_batch_with_stdin(batch_input::AbstractString)
     status, String(take!(out))
 end
 
-@testset "microbench: query/search provider internals" begin
+@testset "microbench: native query provider internals" begin
     root = mktempdir()
     write_julia_microbench_project(root)
 
@@ -156,23 +156,6 @@ end
         AspJulia.render_julia_query_code_selector(query_selector, root)
     end
 
-    search_output = AspJulia.render_julia_search_packet_json(
-        "prime";
-        project_root=root,
-        render_mode="seeds",
-    )
-    search_packet = JSON.parse(search_output)
-    @test search_packet["schemaId"] == "agent.semantic-protocols.semantic-search-packet"
-    @test search_packet["view"] == "prime"
-    @test !isempty(search_packet["owners"])
-
-    run_julia_microbench("julia.search.prime-packet-json-render") do
-        AspJulia.render_julia_search_packet_json(
-            "prime";
-            project_root=root,
-            render_mode="seeds",
-        )
-    end
 end
 
 @testset "DataFrames query and batch provider internals" begin

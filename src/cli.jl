@@ -7,9 +7,6 @@ mutable struct AspJuliaCliOptions
     verification_receipt_template::Bool
     verification_receipts_path::Union{Nothing,String}
     verification_receipts_json::Bool
-    search_query::Union{Nothing,String}
-    tags::Vector{String}
-    limit::Int
     help::Bool
 end
 
@@ -23,9 +20,6 @@ function default_julia_harness_cli_options()
         false,
         nothing,
         false,
-        nothing,
-        String[],
-        25,
         false,
     )
 end
@@ -73,16 +67,7 @@ function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, er
         return 0
     end
     validate_julia_harness_cli_options(options)
-    if !isnothing(options.search_query)
-        results = search_julia_project(
-            options.project_root,
-            options.search_query;
-            tags=options.tags,
-            limit=options.limit,
-        )
-        print(out, render_julia_search_results(results; project_root=options.project_root))
-        return 0
-    elseif options.verification_tasks
+    if options.verification_tasks
         index = build_julia_verification_task_index(options.project_root)
         print(out, render_julia_verification_task_index(index))
         return 0
@@ -158,8 +143,6 @@ function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout
             error("unknown agent subcommand: $(subcommand)")
         end
         return 0
-    elseif command == "search"
-        return run_julia_harness_search_cli(args[2:end]; out)
     elseif command == "batch"
         return run_julia_harness_batch_cli(args[2:end]; out)
     elseif command == "evidence"
@@ -218,18 +201,6 @@ function parse_julia_harness_cli_args(args::Vector{String})
             index <= length(args) || error("--verification-receipts-json requires a JSON file")
             options.verification_receipts_path = args[index]
             options.verification_receipts_json = true
-        elseif arg == "--search"
-            index += 1
-            index <= length(args) || error("--search requires a query")
-            options.search_query = args[index]
-        elseif arg == "--tag"
-            index += 1
-            index <= length(args) || error("--tag requires a tag")
-            append!(options.tags, split_cli_tags(args[index]))
-        elseif arg == "--limit"
-            index += 1
-            index <= length(args) || error("--limit requires an integer")
-            options.limit = Base.parse(Int, args[index])
         elseif startswith(arg, "--")
             error("unknown option: $(arg)")
         else
@@ -250,29 +221,21 @@ function validate_julia_harness_cli_options(options::AspJuliaCliOptions)
         options.verification_profile_json,
         options.verification_receipt_template,
         !isnothing(options.verification_receipts_path),
-        !isnothing(options.search_query),
     ])
     modes <= 1 || error("expected only one output mode")
-    options.limit >= 0 || error("--limit must be non-negative")
     options
-end
-
-function split_cli_tags(value::AbstractString)
-    [strip(tag) for tag in split(String(value), ',') if !isempty(strip(tag))]
 end
 
 function julia_harness_cli_usage()
     """
-    asp-julia [guide | agent doctor --json | search policy RULE owner tests --view seeds | evidence graph --json | evidence analyze --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
+    asp-julia [guide | agent doctor --json | evidence graph --json | evidence analyze --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE] [options] [PROJECT_ROOT]
 
     Use guide to print provider-owned agent commands.
-    Use search policy RULE owner tests --view seeds to resolve policy handles.
     Use evidence graph --json to emit a semantic-evidence-graph packet.
     Use evidence analyze --json to emit a graph-turbo evidence-quality request.
     Use --verification-tasks to emit agent-runnable verification duties.
     Use --verification-receipt-template to emit a JSON receipt skeleton.
     Use --verification-receipts FILE to review agent-submitted verification receipts.
     Use --verification-profile to emit the in-test verification profile.
-    Use --search QUERY with --tag TAG and --limit N to query JuliaSyntax facts.
     """
 end

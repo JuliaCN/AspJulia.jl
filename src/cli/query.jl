@@ -4,7 +4,7 @@ function run_julia_harness_query_cli(
 )
     println(
         out,
-        "Julia does not declare typed native exact projection; use `asp julia search owner <owner-path> items --query <symbol> --workspace <workspace-root> --view seeds` for discovery",
+        "Julia exact projection requires a parser-owned selector; use `asp julia search playbook <query> --workspace <workspace-root>` for discovery",
     )
     return 2
 end

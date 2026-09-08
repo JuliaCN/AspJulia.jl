@@ -100,23 +100,6 @@ end
     @test isempty(String(take!(err)))
 end
 
-@testset "cli search output" begin
-    root = mktempdir()
-    write_cli_project(root)
-    out = IOBuffer()
-
-    status = run_julia_project_harness_cli(
-        ["--search", "CLI fixture", "--tag", "doc", "--limit", "2", root];
-        out,
-    )
-    rendered = String(take!(out))
-
-    @test status == 0
-    @test occursin("SearchResults: count=1", rendered)
-    @test occursin("kind=doc name=run", rendered)
-    @test occursin("src/CliExample.jl", rendered)
-end
-
 @testset "cli agent registry advertises schemas and methods" begin
     root = mktempdir()
     write_cli_project(root)
@@ -146,11 +129,8 @@ end
     @test language.languageId == "julia"
     @test language.providerId == "asp-julia"
     @test language.binary == "asp-julia"
-    @test "search/prime" in language.methods
-    @test "search/lexical" in language.methods
-    @test "search/query" in language.methods
-    @test "search/policy" in language.methods
-    @test "query/owner-items" in language.methods
+    @test isempty(filter(method -> startswith(String(method), "search/"), language.methods))
+    @test !("query/owner-items" in language.methods)
     @test "guide" in language.methods
     @test !("agent/guide" in language.methods)
     @test "agent/doctor" in language.methods
@@ -164,61 +144,11 @@ end
         schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json",
         language.schemas,
     )
-    @test any(
-        descriptor ->
-            descriptor.method == "search/policy" &&
-            "agent.semantic-protocols.semantic-handle" in descriptor.outputSchemaIds,
-        language.methodDescriptors,
-    )
-    @test any(
-        descriptor ->
-            descriptor.method == "search/query" &&
-            descriptor.supportsJson == true &&
-            "--from-hook" in descriptor.requiredOptions &&
-            "agent.semantic-protocols.semantic-native-syntax-fact-index" in
-            descriptor.outputSchemaIds,
-        language.methodDescriptors,
-    )
-    @test any(
-        descriptor ->
-            descriptor.method == "query/owner-items" &&
-            descriptor.supportsJson == true &&
-            "agent.semantic-protocols.semantic-query-packet" in descriptor.outputSchemaIds,
-        language.methodDescriptors,
-    )
     search_descriptors = filter(
         descriptor -> startswith(String(descriptor.method), "search/"),
         language.methodDescriptors,
     )
-    @test all(descriptor -> haskey(descriptor, "benchmarkInvocation"), search_descriptors)
-    @test all(search_descriptors) do descriptor
-        invocation = descriptor.benchmarkInvocation
-        invocation.args[1:2] == ["search", descriptor.view] &&
-            "{workspace}" in invocation.args &&
-            invocation.expectsJson isa Bool &&
-            invocation.maxElapsedMs > 0
-    end
-    benchmark_invocations = Dict(
-        String(descriptor.method) => descriptor.benchmarkInvocation
-        for descriptor in search_descriptors
-    )
-    @test benchmark_invocations["search/owner"].args[1:6] == [
-        "search",
-        "owner",
-        "{owner}",
-        "items",
-        "--query",
-        "{query}",
-    ]
-    @test benchmark_invocations["search/lexical"].args[1:6] == [
-        "search",
-        "lexical",
-        "--query",
-        "{query}",
-        "--query",
-        "{owner}",
-    ]
-    @test benchmark_invocations["search/semantic-facts"].stdinTemplate == "{owner}:1:{query}\\n"
+    @test isempty(search_descriptors)
 end
 
 @testset "package-local semantic schemas stay synchronized when protocol root is present" begin
