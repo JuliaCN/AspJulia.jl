@@ -145,8 +145,6 @@ function run_asp_julia_protocol_cli(args::Vector{String}; out=stdout)
         return 0
     elseif command == "batch"
         return run_asp_julia_batch_cli(args[2:end]; out)
-    elseif command == "evidence"
-        return run_asp_julia_evidence_cli(args[2:end]; out)
     elseif command == "export"
         return run_asp_julia_export_cli(args[2:end]; out)
     end
@@ -155,20 +153,18 @@ end
 
 """Render the agent-facing Julia provider guide.
 
-The root ASP Client owns search composition. The Julia provider advertises its
-remaining evidence routes and sends discovery back through that public
-playbook instead of retaining a provider-local search surface.
+The root ASP Client owns search composition. The Julia provider sends discovery
+through that public playbook and publishes native syntax facts without a
+provider-local graph derivation path.
 """
 function render_asp_julia_agent_guide(workspace_root::AbstractString)
     root = abspath(String(workspace_root))
     workspace = "--workspace <workspace-root>"
     """
     [asp-julia-guide] workspace=$(root)
-    |catalog provider=native-facts routes=search-playbook,evidence-graph,evidence-analyze
+    |catalog provider=native-facts routes=search-playbook
     |route search-playbook returns=candidates,native-syntax,lexical-rank,graph-expansion cmd=asp julia search playbook <query> $(workspace)
     |cmd playbook=asp julia search playbook <query> $(workspace)
-    |cmd evidence-graph=asp julia evidence graph --json $(workspace)
-    |cmd evidence-analyze=asp julia evidence analyze --json $(workspace)
     |policy authority=AspJulia-api trigger=Pkg.test
     |rule agent hook install/runtime is owned by asp
     |rule exact query requires a parser-owned selector; Julia does not yet declare typed native exact projection
@@ -254,11 +250,9 @@ end
 
 function asp_julia_cli_usage()
     """
-    asp-julia [guide | agent doctor --json | evidence graph --json | evidence analyze --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE] [options] [WORKSPACE_ROOT]
+    asp-julia [guide | agent doctor --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE] [options] [WORKSPACE_ROOT]
 
     Use guide to print provider-owned agent commands.
-    Use evidence graph --json to emit a semantic-evidence-graph packet.
-    Use evidence analyze --json to emit a graph-turbo evidence-quality request.
     Use --verification-tasks to emit agent-runnable verification duties.
     Use --verification-receipt-template to emit a JSON receipt skeleton.
     Use --verification-receipts FILE to review agent-submitted verification receipts.

@@ -39,7 +39,6 @@ include("verification/advice.jl")
 include("verification/context.jl")
 include("verification/profile_index.jl")
 include("moshi_extension.jl")
-include("evidence_graph.jl")
 include("queries/flow_lite.jl")
 include("cli/query.jl")
 include("cli/query_contract.jl")
@@ -122,8 +121,6 @@ export JuliaDiagnosticSeverity,
     render_asp_julia_semantic_graph_facts_json,
     render_asp_julia_agent_registry,
     render_asp_julia_agent_registry_json,
-    render_asp_julia_evidence_analysis_request_json,
-    render_asp_julia_evidence_graph_json,
     render_asp_julia_query_owner_items,
     render_asp_julia_query_owner_items_json,
     render_asp_julia_native_owner_items_query_json,

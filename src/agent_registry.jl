@@ -3,7 +3,6 @@ include("agent_registry/core.jl")
 function julia_agent_method_descriptors()
     [
         julia_query_method_descriptor(),
-        julia_evidence_method_descriptors()...,
         Dict{String,Any}(
             "method" => "agent/doctor",
             "command" => "agent",

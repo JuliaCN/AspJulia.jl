@@ -7,7 +7,7 @@
   "providerId": "asp-julia",
   "binary": "asp-julia",
   "providerRegistration": "asp-provider-registration.json",
-  "schemaBundleReceipt": "../schemas/.asp-schema-manager-receipt.json",
+  "schemaBundleReceipt": "schemas/.asp-schema-manager-receipt.json",
   "workspaceArtifact": {
     "root": "languages/AspJulia.jl/build/juliac-asp-local/asp-julia",
     "entrypoint": "."

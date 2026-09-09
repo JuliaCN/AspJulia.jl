@@ -21,28 +21,3 @@ function julia_query_method_descriptor()
         "supportsJson" => true,
     )
 end
-
-function julia_evidence_method_descriptors()
-    [
-        Dict{String,Any}(
-            "method" => "evidence/graph",
-            "command" => "evidence",
-            "input" => "workspace root",
-            "outputSchemaIds" => ["agent.semantic-protocols.semantic-evidence-graph"],
-            "supportsCompact" => true,
-            "supportsJson" => true,
-        ),
-        Dict{String,Any}(
-            "method" => "evidence/analyze",
-            "command" => "evidence",
-            "input" => "workspace root",
-            "outputSchemaIds" => [
-                "agent.semantic-protocols.semantic-graph-turbo-request",
-            ],
-            "packetSchemas" => ["semantic-graph-turbo-request.v1"],
-                "clients" => ["asp-python-graphs"],
-            "supportsCompact" => true,
-            "supportsJson" => true,
-        ),
-    ]
-end

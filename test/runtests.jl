@@ -10,7 +10,6 @@ using Test
     include("unit/moshi_extension.jl")
     include("unit/verification.jl")
     include("unit/cli.jl")
-    include("unit/cli_evidence_graph.jl")
     include("unit/cli_direct_read.jl")
 include("unit/asp_client_server.jl")
 include("unit/cli_query.jl")

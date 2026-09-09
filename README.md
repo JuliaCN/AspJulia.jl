@@ -60,14 +60,12 @@ verification, or domain modeling is hidden in broad stringly code.
 ## ASP Julia Surfaces
 
 The root ASP Client owns the public search surface. ASP Julia supplies native
-JuliaSyntax facts and the evidence routes advertised by its guide:
+JuliaSyntax facts through the Runtime-owned provider path:
 
 ```sh
 asp julia guide --workspace .
 asp julia search playbook <query> --workspace .
 asp julia agent doctor --workspace . --json
-asp julia evidence graph --json --workspace .
-asp julia evidence analyze --json --workspace .
 ```
 
 The package-local executable exposes the same provider routes for development:
@@ -75,7 +73,6 @@ The package-local executable exposes the same provider routes for development:
 ```sh
 julia --project=. bin/asp-julia.jl guide .
 julia --project=. bin/asp-julia.jl agent doctor --json .
-julia --project=. bin/asp-julia.jl evidence graph --json .
 ```
 
 ## Rule Packs
