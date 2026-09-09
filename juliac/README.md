@@ -30,7 +30,7 @@ Smoke:
 ```sh
 build/juliac/asp-julia guide .
 build/juliac/asp-julia agent doctor --json .
-build/juliac/asp-julia search lexical parser owner tests --workspace . --view seeds
+asp search playbook --languages julia --rg -n -e parser . --tantivy term parser
 build/juliac/asp-julia export index .
 ```
 

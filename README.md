@@ -64,7 +64,7 @@ JuliaSyntax facts through the Runtime-owned provider path:
 
 ```sh
 asp julia guide --workspace .
-asp julia search playbook <query> --workspace .
+asp search playbook --languages julia --rg -n -e <query> . --tantivy term <query>
 asp julia agent doctor --workspace . --json
 ```
 

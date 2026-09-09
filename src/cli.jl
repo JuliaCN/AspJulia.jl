@@ -159,12 +159,11 @@ provider-local graph derivation path.
 """
 function render_asp_julia_agent_guide(workspace_root::AbstractString)
     root = abspath(String(workspace_root))
-    workspace = "--workspace <workspace-root>"
     """
     [asp-julia-guide] workspace=$(root)
     |catalog provider=native-facts routes=search-playbook
-    |route search-playbook returns=candidates,native-syntax,lexical-rank,graph-expansion cmd=asp julia search playbook <query> $(workspace)
-    |cmd playbook=asp julia search playbook <query> $(workspace)
+    |route search-playbook returns=candidates,native-syntax,lexical-rank,graph-expansion cmd=asp search playbook --languages julia --rg -n -e <query> . --tantivy term <query>
+    |cmd playbook=asp search playbook --languages julia --rg -n -e <query> . --tantivy term <query>
     |policy authority=AspJulia-api trigger=Pkg.test
     |rule agent hook install/runtime is owned by asp
     |rule exact query requires a parser-owned selector; Julia does not yet declare typed native exact projection

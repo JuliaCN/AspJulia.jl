@@ -207,9 +207,9 @@ end
             @test batch_status == 0
             @test length(elapsed) == 4
             @test maximum(elapsed) <= 20
-            @test occursin("[search-owner]", batch_rendered)
+            @test occursin("[search-playbook]", batch_rendered)
             @test occursin("src/DataFrames.jl", batch_rendered)
-            @test occursin("[search-lexical]", batch_rendered)
+            @test occursin("[search-playbook]", batch_rendered)
         end
     end
 end

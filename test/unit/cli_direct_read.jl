@@ -19,6 +19,6 @@ using Test
 
     @test status == 2
     @test occursin("requires a parser-owned selector", rendered)
-    @test occursin("asp julia search playbook", rendered)
+    @test occursin("asp search playbook --languages julia", rendered)
     @test !occursin("semantic-read-packet", rendered)
 end
