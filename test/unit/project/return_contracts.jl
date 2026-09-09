@@ -13,14 +13,14 @@
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R023", rendered)
     @test occursin("Public return annotation lacks a contract", rendered)
     @test occursin("concrete return annotation `::String`", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner reports documented public return contract without inferred test" begin
@@ -38,14 +38,14 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R031", rendered)
     @test occursin("Public return contract lacks an inferred test", rendered)
     @test occursin("return/type-stability contract `::String`", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts inferred public return contract test" begin
@@ -75,10 +75,10 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner accepts generic type parameter return annotations" begin
@@ -96,9 +96,9 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R023", rendered)
 end

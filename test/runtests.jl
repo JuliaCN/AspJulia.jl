@@ -1,7 +1,7 @@
-using JuliaLangProjectHarness
+using AspJulia
 using Test
 
-@testset "JuliaLangProjectHarness" begin
+@testset "AspJulia" begin
     include("unit/self_policy.jl")
     include("unit/parser.jl")
     include("unit/runner.jl")
@@ -10,17 +10,18 @@ using Test
     include("unit/moshi_extension.jl")
     include("unit/verification.jl")
     include("unit/cli.jl")
-    include("unit/cli_evidence_graph.jl")
     include("unit/cli_direct_read.jl")
-    include("unit/cli_search.jl")
-    include("unit/cli_search_json.jl")
-    include("unit/cli_query.jl")
+include("unit/asp_client_server.jl")
+include("unit/cli_query.jl")
+include("unit/cli_query_contract.jl")
     include("unit/cli_structural_selector.jl")
     include("unit/agent_snapshot.jl")
     include("unit/render.jl")
     include("unit/config.jl")
     include("unit/rule_catalog.jl")
     include("unit/rule_visibility.jl")
-    include("unit/harness_rules.jl")
+    include("unit/aot_rule_projections.jl")
+    include("unit/type_coverage_lexical.jl")
+    include("unit/asp_julia_rules.jl")
     include("unit/scenario_benchmark.jl")
 end

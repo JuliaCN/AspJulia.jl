@@ -2,17 +2,17 @@
     root = mktempdir()
     write_verification_project(root)
 
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     kinds = [record.kind for record in index.records]
 
     @test index.project_root == root
-    @test kinds == ["extension_boundary", "harness_policy", "pkg_test", "stress", "syntax_search"]
+    @test kinds == ["asp_julia_policy", "extension_boundary", "pkg_test", "stress", "syntax_search"]
     @test all(record -> record.state == "pending", index.records)
     @test any(record -> occursin("Pkg.test()", join(record.command, " ")), index.records)
     @test any(
-        record -> record.kind == "harness_policy" &&
+        record -> record.kind == "asp_julia_policy" &&
                   occursin(
-                      "assert_julia_project_harness_test_profile_clean",
+                      "assert_asp_julia_test_profile_clean",
                       join(record.command, " "),
                   ),
         index.records,
@@ -25,9 +25,9 @@
         index.records,
     )
 
-    rendered = render_julia_verification_task_index(index)
-    json = render_julia_verification_task_index_json(index)
-    template = render_julia_verification_receipt_template(index)
+    rendered = render_asp_julia_verification_task_index(index)
+    json = render_asp_julia_verification_task_index_json(index)
+    template = render_asp_julia_verification_receipt_template(index)
 
     @test occursin("VerificationTasks: count=5", rendered)
     @test occursin("owner=test/runtests.jl", rendered)
@@ -42,9 +42,9 @@
     @test occursin("\"required_receipt\"", template)
 
     advice_out = IOBuffer()
-    profile = assert_julia_project_harness_test_profile_clean(root; advice_io=advice_out)
+    profile = assert_asp_julia_test_profile_clean(root; advice_io=advice_out)
     advice = String(take!(advice_out))
-    @test profile.report.project_scope.project_root == root
+    @test profile.report.project_resolution.project_root == root
     @test [record.kind for record in profile.task_index.records] == kinds
     @test length(profile.profile_index.candidates) == 3
     @test isempty(profile.receipt_reviews)
@@ -55,8 +55,8 @@
     @test occursin("fingerprint=stress", advice)
     @test occursin("requires=scenario,load_steps,p50_ms,p99_ms,threshold,result", advice)
 
-    profile_rendered = render_julia_verification_profile(profile)
-    profile_json = render_julia_verification_profile_json(profile)
+    profile_rendered = render_asp_julia_verification_profile(profile)
+    profile_json = render_asp_julia_verification_profile_json(profile)
 
     @test occursin("VerificationProfiles: count=3", profile_rendered)
     @test occursin("responsibilities=test_profile_gate", profile_rendered)
@@ -72,15 +72,15 @@ end
     root = mktempdir()
     write_moshi_extension_verification_project(root)
 
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     extension_task = only(record for record in index.records if record.kind == "extension_boundary")
-    profile_index = build_julia_verification_profile_index(root)
+    profile_index = build_asp_julia_verification_profile_index(root)
     extension_candidate = only(
         candidate for candidate in profile_index.candidates if
         candidate.responsibilities == ["extension_boundary"]
     )
-    rendered = render_julia_verification_task_index(index)
-    profile_rendered = render_julia_verification_profile_index(profile_index)
+    rendered = render_asp_julia_verification_task_index(index)
+    profile_rendered = render_asp_julia_verification_profile_index(profile_index)
 
     @test extension_task.evidence["capability_source"] == "Moshi"
     @test extension_task.evidence["capabilities"] == "syntax,domain-model,search"
@@ -91,7 +91,7 @@ end
     @test occursin("capabilities=syntax,domain-model,search", profile_rendered)
 
     advice_out = IOBuffer()
-    assert_julia_project_harness_test_profile_clean(root; advice_io=advice_out)
+    assert_asp_julia_test_profile_clean(root; advice_io=advice_out)
     advice = String(take!(advice_out))
     @test occursin("capabilities=syntax,domain-model,search", advice)
 end
@@ -106,20 +106,20 @@ end
         version = "0.1.0"
 
         [weakdeps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [extensions]
-        ActivatedJSONExt = ["JSON3"]
+        ActivatedJSONExt = ["JSON"]
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
 
         [extras]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
         [targets]
-        test = ["JSON3", "Test"]
+        test = ["JSON", "Test"]
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -127,16 +127,16 @@ end
     write(joinpath(root, "src", "ActivatedExtExample.jl"), "module ActivatedExtExample\nend\n")
     write(joinpath(root, "ext", "ActivatedJSONExt.jl"), "module ActivatedJSONExt\nend\n")
 
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     extension_task = only(record for record in index.records if record.kind == "extension_boundary")
-    profile_index = build_julia_verification_profile_index(root)
+    profile_index = build_asp_julia_verification_profile_index(root)
     extension_candidate = only(
         candidate for candidate in profile_index.candidates if
         candidate.responsibilities == ["extension_boundary"]
     )
 
     @test extension_task.evidence["activation"] == "test_target"
-    @test extension_task.evidence["test_target"] == "JSON3,Test"
+    @test extension_task.evidence["test_target"] == "JSON,Test"
     @test occursin("Pkg.test()", join(extension_task.command, " "))
     @test extension_candidate.state == "test_target"
 end
@@ -145,11 +145,11 @@ end
     root = mktempdir()
     write_benchmark_verification_project(root)
 
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     performance_tasks = [record for record in index.records if record.kind == "performance"]
-    rendered = render_julia_verification_task_index(index)
-    advice = render_julia_verification_pending_advice(
-        build_julia_project_verification_profile(root),
+    rendered = render_asp_julia_verification_task_index(index)
+    advice = render_asp_julia_verification_pending_advice(
+        build_asp_julia_verification_profile(root),
     )
 
     @test [record.kind for record in index.records] == [
@@ -188,7 +188,7 @@ end
 
 @testset "verification task index owns package microbench gate" begin
     root = dirname(dirname(dirname(@__DIR__)))
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     performance_tasks = [
         record for record in index.records
         if record.kind == "performance" &&
@@ -212,9 +212,9 @@ end
     root = mktempdir()
     write_example_verification_project(root)
 
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     example_task = only(record for record in index.records if record.kind == "example_run")
-    rendered = render_julia_verification_task_index(index)
+    rendered = render_asp_julia_verification_task_index(index)
 
     @test [record.kind for record in index.records] == ["example_run", "pkg_test"]
     @test example_task.owner_path == joinpath(root, "examples", "runexamples.jl")

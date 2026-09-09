@@ -1,17 +1,17 @@
 @testset "rule visibility API exposes accepted AST shapes" begin
-    r027 = julia_rule_visibility("AGENT-JL-R027")
+    r027 = asp_julia_rule_visibility("AGENT-JL-R027")
     @test r027 isa JuliaRuleVisibility
     @test any(occursin("@test_throws ExceptionType public_function", shape) for shape in r027.accepted_ast_shapes)
     @test any(occursin("helper", shape) for shape in r027.rejected_ast_shapes)
     @test any(occursin("parse_payload", example) for example in r027.minimal_examples)
 
-    rendered = render_julia_rule_visibility("AGENT-JL-R027")
+    rendered = render_asp_julia_rule_visibility("AGENT-JL-R027")
     @test occursin("Accepted AST shapes", rendered)
     @test occursin("@test_throws", rendered)
     @test occursin("Rejected AST shapes", rendered)
 
-    @test isnothing(julia_rule_visibility("UNKNOWN-RULE"))
-    @test render_julia_rule_visibility("UNKNOWN-RULE") == ""
+    @test isnothing(asp_julia_rule_visibility("UNKNOWN-RULE"))
+    @test render_asp_julia_rule_visibility("UNKNOWN-RULE") == ""
 end
 
 @testset "native parser observations expose accepted test shapes" begin
@@ -24,7 +24,7 @@ end
         @test_throws ErrorException discover_pluto_notebooks(joinpath(@__DIR__, "missing"))
         """,
     )
-    parsed = JuliaLangProjectHarness.parse_julia_file(path)
+    parsed = AspJulia.parse_julia_file(path)
     observations = [
         observation for observation in parsed.syntax_facts.source_observations if observation.kind ==
         "test_throws"
@@ -65,7 +65,7 @@ end
         """,
     )
 
-    rendered = render_julia_project_harness(run_julia_project_harness(root))
+    rendered = render_asp_julia_report(run_asp_julia_workspace(root))
 
     @test occursin("Accepted AST:", rendered)
     @test occursin("@test_throws ExceptionType public_function", rendered)

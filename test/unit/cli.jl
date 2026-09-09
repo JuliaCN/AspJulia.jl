@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 
 function write_cli_project(root::AbstractString)
     write(
@@ -16,8 +16,8 @@ function write_cli_project(root::AbstractString)
         module CliExample
         export run
         include("Other.jl")
-        \"\"\"Run a value through the CLI fixture.\"\"\"
-        run(value) = helper(value)
+        \"\"\"Run a value through the CLI fixture using an explicit dispatch extension.\"\"\"
+run(value) = helper(value)
         helper(value) = string(value)
         end
         """,
@@ -49,26 +49,27 @@ function write_cli_dependency_project(root::AbstractString)
         version = "0.1.0"
 
         [deps]
-        JSON3 = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
+        JSON = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
 
         [extras]
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
         """,
     )
     write(
         joinpath(root, "src", "CliExample.jl"),
         """
         module CliExample
-        using JSON3
+        using JSON
         export run, parse_json
-        \"\"\"Run a value through the CLI fixture.\"\"\"
+        include("Other.jl")
+        \"\"\"Run a value through the CLI fixture using an explicit dispatch extension.\"\"\"
         run(value) = helper(value)
         helper(value) = string(value)
-        \"\"\"Parse JSON text through JSON3 for dependency search fixtures.\"\"\"
-        parse_json(text) = JSON3.read(text)
+        \"\"\"Parse JSON text through JSON for dependency search fixtures.\"\"\"
+        parse_json(text) = JSON.parse(text)
         end
         """,
     )
@@ -88,50 +89,15 @@ function write_cli_docs_project(root::AbstractString)
     write(joinpath(root, "docs", "src", "index.md"), "# CliExample\n")
 end
 
-@testset "cli compact report" begin
-    root = mktempdir()
-    write_cli_project(root)
+@testset "cli without a command renders the current interface" begin
     out = IOBuffer()
     err = IOBuffer()
 
-    status = run_julia_project_harness_cli([root]; out, err)
+    status = run_asp_julia_cli(String[]; out, err)
 
     @test status == 0
-    @test String(take!(out)) == "[ok] julia\n"
+    @test occursin("asp-julia", String(take!(out)))
     @test isempty(String(take!(err)))
-end
-
-@testset "cli json and snapshot output" begin
-    root = mktempdir()
-    write_cli_project(root)
-    json_out = IOBuffer()
-    snapshot_out = IOBuffer()
-
-    json_status = run_julia_project_harness_cli(["--json", root]; out = json_out)
-    snapshot_status =
-        run_julia_project_harness_cli(["--agent-snapshot", root]; out = snapshot_out)
-
-    @test json_status == 0
-    @test occursin("\"files\"", String(take!(json_out)))
-    @test snapshot_status == 0
-    @test occursin("Package: CliExample", String(take!(snapshot_out)))
-end
-
-@testset "cli search output" begin
-    root = mktempdir()
-    write_cli_project(root)
-    out = IOBuffer()
-
-    status = run_julia_project_harness_cli(
-        ["--search", "CLI fixture", "--tag", "doc", "--limit", "2", root];
-        out,
-    )
-    rendered = String(take!(out))
-
-    @test status == 0
-    @test occursin("SearchResults: count=1", rendered)
-    @test occursin("kind=doc name=run", rendered)
-    @test occursin("src/CliExample.jl", rendered)
 end
 
 @testset "cli agent registry advertises schemas and methods" begin
@@ -142,17 +108,17 @@ end
     doctor_out = IOBuffer()
 
     compact_status =
-        run_julia_project_harness_cli(["agent", "registry", root]; out = compact_out)
+        run_asp_julia_cli(["agent", "registry", root]; out = compact_out)
     json_status =
-        run_julia_project_harness_cli(["agent", "registry", "--json", root]; out = json_out)
+        run_asp_julia_cli(["agent", "registry", "--json", root]; out = json_out)
     doctor_status =
-        run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = doctor_out)
-    registry = JSON3.read(String(take!(json_out)))
-    doctor_registry = JSON3.read(String(take!(doctor_out)))
+        run_asp_julia_cli(["agent", "doctor", "--json", root]; out = doctor_out)
+    registry = JSON.parse(String(take!(json_out)))
+    doctor_registry = JSON.parse(String(take!(doctor_out)))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
 
     @test compact_status == 0
-    @test occursin("[julia-agent-registry]", String(take!(compact_out)))
+    @test occursin("[asp-julia-agent-registry]", String(take!(compact_out)))
     @test json_status == 0
     @test doctor_status == 0
     @test registry.registryId == "agent.semantic-protocols.semantic-language-registry"
@@ -161,13 +127,10 @@ end
     @test count(language -> language.languageId == "julia", registry.languages) == 1
     @test !any(language -> language.languageId == "gerbil-scheme", registry.languages)
     @test language.languageId == "julia"
-    @test language.providerId == "julia-lang-project-harness"
-    @test language.binary == "asp-julia-harness"
-    @test "search/prime" in language.methods
-    @test "search/lexical" in language.methods
-    @test "search/query" in language.methods
-    @test "search/policy" in language.methods
-    @test "query/owner-items" in language.methods
+    @test language.providerId == "asp-julia"
+    @test language.binary == "asp-julia"
+    @test isempty(filter(method -> startswith(String(method), "search/"), language.methods))
+    @test !("query/owner-items" in language.methods)
     @test "guide" in language.methods
     @test !("agent/guide" in language.methods)
     @test "agent/doctor" in language.methods
@@ -181,73 +144,24 @@ end
         schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json",
         language.schemas,
     )
-    @test any(
-        descriptor ->
-            descriptor.method == "search/policy" &&
-            "agent.semantic-protocols.semantic-handle" in descriptor.outputSchemaIds,
-        language.methodDescriptors,
-    )
-    @test any(
-        descriptor ->
-            descriptor.method == "search/query" &&
-            descriptor.supportsJson == true &&
-            "--from-hook" in descriptor.requiredOptions &&
-            "agent.semantic-protocols.semantic-native-syntax-fact-index" in
-            descriptor.outputSchemaIds,
-        language.methodDescriptors,
-    )
-    @test any(
-        descriptor ->
-            descriptor.method == "query/owner-items" &&
-            descriptor.supportsJson == true &&
-            "agent.semantic-protocols.semantic-query-packet" in descriptor.outputSchemaIds,
-        language.methodDescriptors,
-    )
     search_descriptors = filter(
         descriptor -> startswith(String(descriptor.method), "search/"),
         language.methodDescriptors,
     )
-    @test all(descriptor -> haskey(descriptor, "benchmarkInvocation"), search_descriptors)
-    @test all(search_descriptors) do descriptor
-        invocation = descriptor.benchmarkInvocation
-        invocation.args[1:2] == ["search", descriptor.view] &&
-            "{workspace}" in invocation.args &&
-            invocation.expectsJson isa Bool &&
-            invocation.maxElapsedMs > 0
-    end
-    benchmark_invocations = Dict(
-        String(descriptor.method) => descriptor.benchmarkInvocation
-        for descriptor in search_descriptors
-    )
-    @test benchmark_invocations["search/owner"].args[1:6] == [
-        "search",
-        "owner",
-        "{owner}",
-        "items",
-        "--query",
-        "{query}",
-    ]
-    @test benchmark_invocations["search/lexical"].args[1:6] == [
-        "search",
-        "lexical",
-        "--query",
-        "{query}",
-        "--query",
-        "{owner}",
-    ]
-    @test benchmark_invocations["search/semantic-facts"].stdinTemplate == "{owner}:1:{query}\\n"
+    @test isempty(search_descriptors)
 end
 
 @testset "package-local semantic schemas stay synchronized when protocol root is present" begin
     package_root = normpath(joinpath(@__DIR__, "..", ".."))
     protocol_schemas = normpath(joinpath(package_root, "..", "..", "schemas"))
     schema_dir = joinpath(package_root, "schemas")
-    registrations = julia_schema_registrations()
+    registrations = asp_julia_schema_registrations()
+    @test_throws ErrorException asp_julia_schema_registrations(joinpath(package_root, "missing-schemas"))
     registered_paths = Set(registration["path"] for registration in registrations)
     package_schema_paths = Set(
         "schemas/$file_name"
         for file_name in readdir(schema_dir)
-        if endswith(file_name, ".json")
+        if !startswith(file_name, ".") && endswith(file_name, ".json")
     )
 
     @test registered_paths == package_schema_paths
@@ -280,8 +194,8 @@ end
     write_cli_project(root)
     out = IOBuffer()
 
-    status = run_julia_project_harness_cli(["export", "index", root]; out)
-    packet = JSON3.read(String(take!(out)))
+    status = run_asp_julia_cli(["export", "index", root]; out)
+    packet = JSON.parse(String(take!(out)))
 
     @test status == 0
     @test packet.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index"
@@ -289,7 +203,7 @@ end
     @test packet.protocolId == "agent.semantic-protocols.semantic-language"
     @test packet.protocolVersion == "1"
     @test packet.languageId == "julia"
-    @test packet.providerId == "julia-lang-project-harness"
+    @test packet.providerId == "asp-julia"
     @test packet.projectRoot == abspath(root)
     @test length(packet.facts) > 0
     @test length(packet.indexes) >= 5
@@ -299,7 +213,7 @@ end
     @test any(fact -> fact.kind == "argument", packet.facts)
     @test any(index -> index.name == "public-api", packet.indexes)
     @test all(fact -> !startswith(fact.ownerPath, "/"), packet.facts)
-    @test_throws ErrorException run_julia_harness_export_cli(String[])
+    @test_throws ErrorException run_asp_julia_export_cli(String[])
 end
 
 @testset "cli verification task output" begin
@@ -314,20 +228,20 @@ end
     receipt_json_out = IOBuffer()
     bad_receipt_out = IOBuffer()
 
-    status = run_julia_project_harness_cli(["--verification-tasks", root]; out)
+    status = run_asp_julia_cli(["--verification-tasks", root]; out)
     json_status =
-        run_julia_project_harness_cli(["--verification-tasks-json", root]; out = json_out)
+        run_asp_julia_cli(["--verification-tasks-json", root]; out = json_out)
     profile_status =
-        run_julia_project_harness_cli(["--verification-profile", root]; out = profile_out)
-    profile_json_status = run_julia_project_harness_cli(
+        run_asp_julia_cli(["--verification-profile", root]; out = profile_out)
+    profile_json_status = run_asp_julia_cli(
         ["--verification-profile-json", root];
         out = profile_json_out,
     )
-    template_status = run_julia_project_harness_cli(
+    template_status = run_asp_julia_cli(
         ["--verification-receipt-template", root];
         out = template_out,
     )
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     security = only(record for record in index.records if record.kind == "security")
     stress = only(record for record in index.records if record.kind == "stress")
     receipt_path = joinpath(root, "receipts.json")
@@ -344,15 +258,15 @@ end
         {"receipts":[{"fingerprint":"$(stress.fingerprint)","scenario":"todo"}]}
         """,
     )
-    receipt_status = run_julia_project_harness_cli(
+    receipt_status = run_asp_julia_cli(
         ["--verification-receipts", receipt_path, root];
         out = receipt_out,
     )
-    receipt_json_status = run_julia_project_harness_cli(
+    receipt_json_status = run_asp_julia_cli(
         ["--verification-receipts-json", receipt_path, root];
         out = receipt_json_out,
     )
-    bad_receipt_status = run_julia_project_harness_cli(
+    bad_receipt_status = run_asp_julia_cli(
         ["--verification-receipts", bad_receipt_path, root];
         out = bad_receipt_out,
     )
@@ -400,24 +314,11 @@ end
     write_cli_docs_project(root)
     out = IOBuffer()
 
-    status = run_julia_project_harness_cli(["--verification-tasks", root]; out)
+    status = run_asp_julia_cli(["--verification-tasks", root]; out)
     rendered = String(take!(out))
 
     @test status == 0
     @test occursin("kind=docs_build", rendered)
     @test occursin("owner=docs/make.jl", rendered)
     @test occursin("tool=Documenter", rendered)
-end
-
-@testset "cli rejects conflicting modes" begin
-    root = mktempdir()
-    write_cli_project(root)
-    out = IOBuffer()
-    err = IOBuffer()
-
-    status = run_julia_project_harness_cli(["--json", "--agent-snapshot", root]; out, err)
-
-    @test status == 2
-    @test isempty(String(take!(out)))
-    @test occursin("expected only one output mode", String(take!(err)))
 end

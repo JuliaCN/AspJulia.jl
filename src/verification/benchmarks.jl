@@ -5,7 +5,7 @@ const JULIA_BENCHMARK_ENTRY_CANDIDATES = [
     (joinpath("test", "perf"), ["runtests.jl", "runbenchmarks.jl", "benchmarks.jl"]),
 ]
 
-function benchmark_verification_tasks(scope::JuliaProjectHarnessScope)
+function benchmark_verification_tasks(scope::AspJuliaWorkspaceScope)
     records = JuliaVerificationTaskRecord[]
     for (relative_root, entry_names) in JULIA_BENCHMARK_ENTRY_CANDIDATES
         benchmark_root = joinpath(scope.project_root, relative_root)
@@ -21,7 +21,7 @@ function benchmark_verification_tasks(scope::JuliaProjectHarnessScope)
 end
 
 function benchmark_verification_task(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     benchmark_root::AbstractString,
     entry_path::AbstractString,
 )
@@ -45,7 +45,7 @@ function benchmark_verification_task(
 end
 
 function benchmark_verification_command(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     benchmark_root::AbstractString,
     entry_path::AbstractString,
 )
@@ -60,7 +60,7 @@ function benchmark_verification_command(
 end
 
 function benchmark_activation_root(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     benchmark_root::AbstractString,
 )
     isfile(joinpath(benchmark_root, "Project.toml")) && return String(benchmark_root)
@@ -68,7 +68,7 @@ function benchmark_activation_root(
 end
 
 function benchmark_verification_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     benchmark_root::AbstractString,
     entry_path::AbstractString,
     command::Vector{String},
@@ -84,7 +84,7 @@ function benchmark_verification_evidence(
 end
 
 function benchmark_project_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     activation_root::AbstractString,
 )
     normpath(activation_root) == normpath(scope.project_root) && return "root"
@@ -93,7 +93,7 @@ function benchmark_project_evidence(
 end
 
 function benchmark_activation_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     activation_root::AbstractString,
 )
     normpath(activation_root) == normpath(scope.project_root) && return "root_project"

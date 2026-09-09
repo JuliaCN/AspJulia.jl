@@ -2,28 +2,28 @@ const DOCUMENTER_EXECUTABLE_EXAMPLE_LANGUAGES = Set(["@example", "@repl", "jldoc
 const MAX_DOCUMENTER_EXAMPLE_MISSING_NAMES = 8
 
 function public_documenter_example_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    isempty(public_names) && return JuliaHarnessFinding[]
+    isempty(public_names) && return AspJuliaFinding[]
     docs = documenter_docs_surface(scope)
-    isnothing(docs) && return JuliaHarnessFinding[]
+    isnothing(docs) && return AspJuliaFinding[]
     covered_names = documenter_executable_example_public_names(docs.root, public_names)
     missing_names = sort!(collect(setdiff(public_names, covered_names)))
-    isempty(missing_names) && return JuliaHarnessFinding[]
+    isempty(missing_names) && return AspJuliaFinding[]
     [
-        finding_from_rule(
-            rules[AGENT_JL_R019];
-            summary=documenter_example_summary(scope, missing_names),
-            location=SourceLocation(docs.make_path, 1, 0),
-            source_line=documenter_make_source_line(docs.make_path),
-            label="add executable Documenter examples for the missing public API names",
+        finding_from_rule_typed(
+            rules[AGENT_JL_R019],
+            documenter_example_summary(scope, missing_names),
+            SourceLocation(docs.make_path, 1, 0),
+            documenter_make_source_line(docs.make_path),
+            "add executable Documenter examples for the missing public API names",
         ),
     ]
 end
 
-function documenter_docs_surface(scope::JuliaProjectHarnessScope)
+function documenter_docs_surface(scope::AspJuliaWorkspaceScope)
     docs_root = joinpath(scope.project_root, "docs")
     docs_project = joinpath(docs_root, "Project.toml")
     docs_make = joinpath(docs_root, "make.jl")
@@ -142,16 +142,11 @@ function doctest_prompt_source_line(line::AbstractString)
 end
 
 function syntax_identifiers_from_source(source::AbstractString)
-    try
-        syntax = JuliaSyntax.parseall(JuliaSyntax.SyntaxNode, String(source))
-        Set(identifier_texts(syntax))
-    catch
-        Set{String}()
-    end
+    annotation_identifier_names(source)
 end
 
 function documenter_example_summary(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     missing_names::Vector{String},
 )
     capped = first(missing_names, min(length(missing_names), MAX_DOCUMENTER_EXAMPLE_MISSING_NAMES))

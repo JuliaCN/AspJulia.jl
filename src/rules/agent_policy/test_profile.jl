@@ -1,35 +1,35 @@
-const JULIA_HARNESS_TEST_PROFILE_CALL_NAMES = Set([
-    "assert_julia_project_harness_test_profile_clean",
+const ASP_JULIA_TEST_PROFILE_CALL_NAMES = Set([
+    "assert_asp_julia_test_profile_clean",
 ])
 
 function verification_test_profile_findings(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    has_harness_dependency(scope) || return JuliaHarnessFinding[]
-    has_test_profile_hook(scope, parsed_files) && return JuliaHarnessFinding[]
+    has_asp_julia_dependency(scope) || return AspJuliaFinding[]
+    has_test_profile_hook(scope, parsed_files) && return AspJuliaFinding[]
     owner_path = preferred_test_owner_path(scope)
     [
-        finding_from_rule(
-            rules[AGENT_JL_R014];
-            summary="Project `$(something(scope.package_name, "<unnamed>"))` depends on JuliaLangProjectHarness, but its test files do not call `assert_julia_project_harness_test_profile_clean`.",
-            location=SourceLocation(owner_path, 1, 0),
-            source_line=test_profile_owner_source_line(owner_path, parsed_files),
-            label="add a compact harness testset that calls `assert_julia_project_harness_test_profile_clean(pkgdir(<PackageModule>))`",
+        finding_from_rule_typed(
+            rules[AGENT_JL_R014],
+            "Package `$(something(scope.package_name, "<unnamed>"))` depends on ASP Julia, but its test files do not call `assert_asp_julia_test_profile_clean`.",
+            SourceLocation(owner_path, 1, 0),
+            test_profile_owner_source_line(owner_path, parsed_files),
+            "add a compact ASP Julia testset that calls `assert_asp_julia_test_profile_clean(pkgdir(<PackageModule>))`",
         ),
     ]
 end
 
 function has_test_profile_hook(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     any(parsed_files) do parsed
         parsed.report.is_valid || return false
         is_test_path(scope, parsed.report.path) || return false
         any(
-            call -> call.terminal_name in JULIA_HARNESS_TEST_PROFILE_CALL_NAMES,
+            call -> call.terminal_name in ASP_JULIA_TEST_PROFILE_CALL_NAMES,
             parsed.syntax_facts.calls,
         )
     end

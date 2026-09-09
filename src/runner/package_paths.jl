@@ -11,7 +11,7 @@ const JULIA_PACKAGE_SEARCH_BENCHMARK_ENTRY_CANDIDATES = [
     (joinpath("test", "perf"), ["runtests.jl", "runbenchmarks.jl", "benchmarks.jl"]),
 ]
 
-function scope_search_paths(scope::JuliaProjectHarnessScope)
+function scope_search_paths(scope::AspJuliaWorkspaceScope)
     selected = vcat(scope_monitored_paths(scope), scope.package_paths)
     isempty(selected) ? [scope.project_root] : unique_paths(selected)
 end

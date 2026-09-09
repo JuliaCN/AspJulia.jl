@@ -1,12 +1,12 @@
 const JULIA_VERIFICATION_RECEIPT_ESCAPE_STATES = Set(["skip", "skipped", "waive", "waived"])
 const JULIA_VERIFICATION_RECEIPT_CLEAN_STATUSES = Set([:accepted, :waived, :not_required])
 const JULIA_VERIFICATION_RECEIPT_RELATIVE_PATHS = [
-    joinpath(".julia-harness", "verification-receipts.json"),
+    joinpath(".asp-julia", "verification-receipts.json"),
 ]
 
 """Read agent verification receipts from a compact JSON file."""
 function read_julia_verification_receipts_json(path::AbstractString)
-    payload = JSON3.read(read(path, String))
+    payload = JSON.parse(read(path, String))
     raw_receipts = json_payload_receipts(payload)
     [verification_receipt_dict(receipt) for receipt in raw_receipts]
 end
@@ -16,7 +16,7 @@ function review_julia_project_verification_receipts(index::JuliaVerificationTask
     for path in existing_julia_verification_receipt_paths(index.project_root)
         append!(
             reviews,
-            review_julia_verification_receipts(
+            review_asp_julia_verification_receipts(
                 index,
                 read_julia_verification_receipts_json(path),
             ),
@@ -52,7 +52,7 @@ function verification_receipt_value(value)
 end
 
 """Review agent-submitted receipts against the required evidence contracts."""
-function review_julia_verification_receipts(
+function review_asp_julia_verification_receipts(
     index::JuliaVerificationTaskIndex,
     receipts::Vector{<:AbstractDict},
 )
@@ -238,18 +238,18 @@ function is_julia_verification_receipt_review_clean(review::JuliaVerificationRec
 end
 
 """Assert that submitted verification receipts satisfy or explain every required task."""
-function assert_julia_verification_receipts_accepted(
+function assert_asp_julia_verification_receipts_accepted(
     index::JuliaVerificationTaskIndex,
     receipts::Vector{<:AbstractDict},
 )
-    reviews = review_julia_verification_receipts(index, receipts)
+    reviews = review_asp_julia_verification_receipts(index, receipts)
     all(is_julia_verification_receipt_review_clean, reviews) ||
-        error(render_julia_verification_receipt_reviews(reviews; project_root=index.project_root))
+        error(render_asp_julia_verification_receipt_reviews(reviews; project_root=index.project_root))
     reviews
 end
 
 """Render receipt review results as compact text for agent repair."""
-function render_julia_verification_receipt_reviews(
+function render_asp_julia_verification_receipt_reviews(
     reviews::Vector{JuliaVerificationReceiptReview};
     project_root::Union{Nothing,AbstractString}=nothing,
 )
@@ -287,10 +287,10 @@ function verification_receipt_owner_path(
 end
 
 """Render receipt review results as JSON for machines that need the full shape."""
-function render_julia_verification_receipt_reviews_json(
+function render_asp_julia_verification_receipt_reviews_json(
     reviews::Vector{JuliaVerificationReceiptReview},
 )
-    JSON3.write(Dict("reviews" => map(verification_receipt_review_dict, reviews)))
+    JSON.json(Dict("reviews" => map(verification_receipt_review_dict, reviews)))
 end
 
 function verification_receipt_review_dict(review::JuliaVerificationReceiptReview)

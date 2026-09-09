@@ -1,19 +1,19 @@
-# Julia Project Quality Notes for Agents
+# ASP Julia Quality Notes for Agents
 
 Status: research note
 Date: 2026-05-20
-Repository: `julia-lang-project-harness`
+Repository: `asp-julia`
 
 ## Purpose
 
-This note turns Julia project quality guidance into harness design input for
+This note turns Julia project quality guidance into ASP Julia design input for
 coding agents. The goal is not to make agents memorize a generic style guide.
 The goal is to make Julia project structure, API intent, algorithm shape,
 performance risk, tests, documentation, and escape-policy surfaces visible
 enough that an agent can repair a package without writing brittle "AI-shaped"
 Julia.
 
-The Rust harness remains an experience source, but the Julia harness must use
+The Rust provider remains an experience source, but ASP Julia must use
 Julia-native authority:
 
 - `Project.toml`, `Pkg`, and workspace environments define project boundaries.
@@ -47,7 +47,7 @@ Mature project and ecosystem references:
 - [Moshi.jl](https://rogerluo.dev/Moshi.jl/)
 
 These sources do not fully agree on every style detail. That is useful signal:
-the harness should prefer project-local consistency, parser-visible intent, and
+ASP Julia should prefer project-local consistency, parser-visible intent, and
 verification receipts over universal formatting taste.
 
 ## Quality Model
@@ -58,7 +58,7 @@ High-quality Julia project work starts from the active package environment, not
 from a loose directory scan. `Project.toml` owns package identity, direct
 dependencies, weak dependencies, extensions, compatibility, extras, targets,
 local source dependencies, and workspace membership. `Manifest.toml` can be
-important evidence for applications or shared workspaces, but harness policy
+important evidence for applications or shared workspaces, but ASP Julia policy
 should not invent a version lock where the package intends resolver-compatible
 library behavior.
 
@@ -68,7 +68,7 @@ Agent implication:
 - Read `[deps]`, `[weakdeps]`, `[extensions]`, `[compat]`, `[extras]`,
   `[targets]`, `[sources]`, and `[workspace]` as structured package facts.
 - Use `entryfile`, declared extensions, `[sources].path`, and workspace
-  members to decide the harness scope before falling back to configured
+  members to decide the ASP Julia scope before falling back to configured
   directories.
 - Treat `test/`, `docs/`, and `benchmarks/` projects as first-class package
   environments when they have their own `Project.toml`.
@@ -346,7 +346,7 @@ Already implemented or designed:
 - Moshi is treated as an optional expression layer for ADTs and pattern
   matching. The harness parses `@data`, `@match`, and `@derive` as JuliaSyntax
   facts, keeps Moshi behind `[weakdeps]` and `[extensions]`, and self-applies
-  that policy through `JuliaLangProjectHarnessMoshiExt` instead of adding
+  that policy through `AspJuliaMoshiExt` instead of adding
   Moshi to the core runtime dependencies. Agent snapshots and search entries
   expose the configured Moshi extension, activation state, and compact
   capability labels without requiring the core process to load Moshi first.

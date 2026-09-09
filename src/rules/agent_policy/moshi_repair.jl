@@ -1,21 +1,21 @@
-function moshi_extension_repair_state(scope::JuliaProjectHarnessScope)
+function moshi_extension_repair_state(scope::AspJuliaWorkspaceScope)
     haskey(scope.direct_dependencies, "Moshi") && return "direct_dep_enabled"
     has_moshi_optional_extension(scope) && return "extension_without_model"
     haskey(scope.weak_dependencies, "Moshi") && return "weakdep_without_extension"
     "missing_weakdep"
 end
 
-function moshi_extension_repair_name(scope::JuliaProjectHarnessScope)
+function moshi_extension_repair_name(scope::AspJuliaWorkspaceScope)
     entries = moshi_optional_extension_entries(scope)
     !isempty(entries) && return first(first(entries))
     "$(something(scope.package_name, "<PackageName>"))MoshiExt"
 end
 
-function moshi_extension_repair_target(scope::JuliaProjectHarnessScope)
+function moshi_extension_repair_target(scope::AspJuliaWorkspaceScope)
     "ext/$(moshi_extension_repair_name(scope)).jl"
 end
 
-function moshi_extension_repair_shape(scope::JuliaProjectHarnessScope)
+function moshi_extension_repair_shape(scope::AspJuliaWorkspaceScope)
     if project_moshi_policy(scope) == "enable"
         return moshi_source_repair_shape(scope)
     end
@@ -34,7 +34,7 @@ function moshi_extension_repair_shape(scope::JuliaProjectHarnessScope)
 end
 
 function moshi_source_repair_shape(
-    scope::JuliaProjectHarnessScope;
+    scope::AspJuliaWorkspaceScope;
     repair_target::AbstractString = moshi_source_repair_target(scope),
 )
     join(
@@ -47,17 +47,17 @@ function moshi_source_repair_shape(
     )
 end
 
-function moshi_source_repair_target(scope::JuliaProjectHarnessScope)
+function moshi_source_repair_target(scope::AspJuliaWorkspaceScope)
     entry_path = scope.package_entry_path
     if !isnothing(entry_path)
-        return slash_path(relpath(entry_path, scope.project_root))
+        return display_public_owner_path(scope, entry_path)
     end
     source_paths = sort(scope.source_paths)
     isempty(source_paths) && return "src/"
-    slash_path(relpath(first(source_paths), scope.project_root))
+    display_public_owner_path(scope, first(source_paths))
 end
 
-function moshi_model_repair_target(scope::JuliaProjectHarnessScope)
+function moshi_model_repair_target(scope::AspJuliaWorkspaceScope)
     project_moshi_policy(scope) == "enable" && return moshi_source_repair_target(scope)
     moshi_extension_repair_target(scope)
 end

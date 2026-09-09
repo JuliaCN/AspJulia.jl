@@ -7,10 +7,10 @@
             """
 
         [deps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
         """,
         )
     end
@@ -18,7 +18,7 @@
     mkpath(joinpath(root, "test"))
     write(
         joinpath(root, "src", "Example.jl"),
-        "module Example\nexport run, Config, DEFAULT_LIMIT\nusing JSON3\ninclude(\"api.jl\")\n\"\"\"Runtime configuration.\"\"\"\nstruct Config\nvalue::Int\nmode::Symbol = :fast\nend\n\"\"\"Default limit.\"\"\"\nconst DEFAULT_LIMIT::Int = 8\n\"\"\"Run a value.\"\"\"\nfunction run(value::T)::T where {T}\nif value > zero(T)\nfor item in value:value\n@alpha item\nend\nend\nvalue\nend\nend\n",
+        "module Example\nexport run, Config, DEFAULT_LIMIT\nusing JSON\ninclude(\"api.jl\")\n\"\"\"Runtime configuration.\"\"\"\nstruct Config\nvalue::Int\nmode::Symbol = :fast\nend\n\"\"\"Default limit.\"\"\"\nconst DEFAULT_LIMIT::Int = 8\n\"\"\"Run a value.\"\"\"\nfunction run(value::T)::T where {T}\nif value > zero(T)\nfor item in value:value\n@alpha item\nend\nend\nvalue\nend\nend\n",
     )
     write(joinpath(root, "src", "api.jl"), "internal_api() = 1\n")
     write(
@@ -26,7 +26,7 @@
         "using Test\n@testset \"core\" begin\n@test run(1) == 1\n@test run(1.0) == 1.0\nend\n",
     )
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("Package: Example", rendered)
     @test occursin("Files: source=2 test=1", rendered)
@@ -34,11 +34,11 @@
     @test occursin("Project:", rendered)
     @test occursin("extras=Test", rendered)
     @test occursin("targets=test=Test", rendered)
-    @test occursin("compat=JSON3=1", rendered)
+    @test occursin("compat=JSON=1", rendered)
     @test occursin("ReasoningTree:", rendered)
     @test occursin("- root package=Example entry=src/Example.jl", rendered)
     @test occursin(
-        "- owner src/Example.jl role=entry modules=Example public=Config,DEFAULT_LIMIT,run imports=JSON3 includes=src/api.jl types=Config bindings=DEFAULT_LIMIT methods=run",
+        "- owner src/Example.jl role=entry modules=Example public=Config,DEFAULT_LIMIT,run imports=JSON includes=src/api.jl types=Config bindings=DEFAULT_LIMIT methods=run",
         rendered,
     )
     @test occursin("- owner src/api.jl role=source methods=internal_api", rendered)
@@ -48,7 +48,7 @@
     @test occursin("Public:", rendered)
     @test occursin("export=run", rendered)
     @test occursin("Imports:", rendered)
-    @test occursin("using=JSON3", rendered)
+    @test occursin("using=JSON", rendered)
     @test occursin("Types:", rendered)
     @test occursin("struct=Config fields=2 typed=2 defaults=1", rendered)
     @test occursin("Bindings:", rendered)
@@ -97,7 +97,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin(
         "sources=LocalDep(path=deps/LocalDep);RemoteDep(rev=abcdef,subdir=src/SubPackage,url=https://example.invalid/repo.git)",
@@ -129,7 +129,7 @@ end
     )
     write(joinpath(root, "benchmark", "runbenchmarks.jl"), "println(\"benchmark\")\n")
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("Verification:", rendered)
     @test occursin("kind=performance", rendered)
@@ -164,7 +164,7 @@ end
         "using Example\nscripted_example() = run(1)\n",
     )
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("Files: source=1 test=0 package=2", rendered)
     @test occursin("- owner docs/make.jl role=docs imports=Documenter methods=build_docs", rendered)
@@ -180,7 +180,7 @@ end
     mkpath(joinpath(root, "src"))
     write(joinpath(root, "src", "Example.jl"), "module Example\ninclude(path)\nend\n")
 
-    rendered = render_julia_project_harness_agent_snapshot(root)
+    rendered = render_asp_julia_agent_snapshot(root)
 
     @test occursin("DynamicIncludes:", rendered)
     @test occursin("include(path)", rendered)
@@ -191,5 +191,5 @@ end
 @testset "agent snapshot rejects missing project root" begin
     missing = joinpath(mktempdir(), "missing")
 
-    @test_throws ErrorException render_julia_project_harness_agent_snapshot(missing)
+    @test_throws ErrorException render_asp_julia_agent_snapshot(missing)
 end
