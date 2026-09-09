@@ -12,9 +12,6 @@ on:
 permissions:
   contents: read
 
-env:
-  SEMANTIC_AGENT_PROTOCOL_BIN: ${{ github.workspace }}/test/fixtures/bin/asp
-
 jobs:
   test:
     name: Core suites - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.nthreads }} threads - ${{ github.event_name }}

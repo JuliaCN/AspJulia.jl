@@ -1,7 +1,7 @@
 {
   "languageId": "julia",
   "profileDigest": "blake3-256:18a9aa58835eb9dc8d7b937a4916c3c092c7effcfa17871f0528772eb9bcb162",
-  "bundleDigest": "blake3-256:922dbe04d38837f5f427893f1e87cd537a198531e119561877d6d29ddeb07c81",
+  "bundleDigest": "blake3-256:bb2655b31613b35623643cc86fdc95e358c14c190d79ec12c4bd6df1d427df2c",
   "schemas": [
     {
       "name": "asp-client-cancellation-probe-request.schema.json",
@@ -397,7 +397,7 @@
     },
     {
       "name": "semantic-graph-turbo-request.v1.schema.json",
-      "digest": "blake3-256:01d3574500ce52ea5cb4170b483c5f68c8316a301e34a765016b1f0818316c64"
+      "digest": "blake3-256:4d684bf1ffe87d634cc04fd8006c4b2cab4facad7fc4830df460efbbd3aeb8ba"
     },
     {
       "name": "semantic-graph.v1.schema.json",
