@@ -1,4 +1,5 @@
 provider = "asp-julia"
+harness = "julia-test"
 test = "test/unit/scenarios/software_criteria/control_flow_v1"
 snapshot = "software_criteria/control_flow_v1"
 phase = "cold"
