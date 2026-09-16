@@ -92,7 +92,7 @@
         "using Test\n@testset \"search\" begin\n@test run(1) == 1\nend\n",
     )
 
-    entries = julia_project_search_index(root)
+    entries = asp_julia_workspace_search_index(root)
 
     @test any(
         entry -> entry.kind == "owner" &&
@@ -240,46 +240,46 @@
     @test any(entry -> entry.kind == "testset" && entry.name == "search", entries)
     @test all(entry -> !isnothing(entry.location.path), entries)
 
-    doc_results = search_julia_index(entries, "public API"; tags=["doc"], limit=3)
+    doc_results = search_asp_julia_index(entries, "public API"; tags=["doc"], limit=3)
     @test !isempty(doc_results)
     @test first(doc_results).entry.kind == "doc"
     @test first(doc_results).entry.name == "run"
     @test first(doc_results).score > 0
 
-    call_results = search_julia_project(root, "helper"; tags=["call"], limit=2)
+    call_results = search_asp_julia_workspace(root, "helper"; tags=["call"], limit=2)
     @test any(
         result -> result.entry.kind == "call" && result.entry.name == "helper",
         call_results,
     )
     @test all(result -> "call" in result.entry.tags, call_results)
 
-    type_results = search_julia_project(root, "Config"; tags=["type"], limit=1)
+    type_results = search_asp_julia_workspace(root, "Config"; tags=["type"], limit=1)
     @test length(type_results) == 1
     @test only(type_results).entry.kind == "struct"
-    field_results = search_julia_project(root, "mode"; tags=["field"], limit=1)
+    field_results = search_asp_julia_workspace(root, "mode"; tags=["field"], limit=1)
     @test length(field_results) == 1
     @test only(field_results).entry.kind == "field"
     @test only(field_results).entry.name == "Config.mode"
-    argument_results = search_julia_project(root, "verbose"; tags=["argument"], limit=1)
+    argument_results = search_asp_julia_workspace(root, "verbose"; tags=["argument"], limit=1)
     @test length(argument_results) == 1
     @test only(argument_results).entry.kind == "argument"
     @test only(argument_results).entry.name == "run.verbose"
-    binding_results = search_julia_project(root, "DEFAULT_LIMIT"; tags=["binding"], limit=1)
+    binding_results = search_asp_julia_workspace(root, "DEFAULT_LIMIT"; tags=["binding"], limit=1)
     @test length(binding_results) == 1
     @test only(binding_results).entry.kind == "const"
-    moshi_results = search_julia_project(root, "Mode"; tags=["moshi"], limit=1)
+    moshi_results = search_asp_julia_workspace(root, "Mode"; tags=["moshi"], limit=1)
     @test length(moshi_results) == 1
     @test only(moshi_results).entry.kind == "moshi"
     @test only(moshi_results).entry.name == "Mode"
-    shape_results = search_julia_project(root, "scan"; tags=["nested-loop"], limit=1)
+    shape_results = search_asp_julia_workspace(root, "scan"; tags=["nested-loop"], limit=1)
     @test length(shape_results) == 1
     @test only(shape_results).entry.kind == "function"
     @test only(shape_results).entry.name == "scan"
-    owner_results = search_julia_project(root, "helper run"; tags=["owner"], limit=1)
+    owner_results = search_asp_julia_workspace(root, "helper run"; tags=["owner"], limit=1)
     @test length(owner_results) == 1
     @test only(owner_results).entry.kind == "owner"
     @test only(owner_results).entry.name == "src/api.jl"
-    @test isempty(search_julia_index(entries, "run"; limit=0))
+    @test isempty(search_asp_julia_index(entries, "run"; limit=0))
 end
 
 @testset "project search index tags testset control flow" begin
@@ -319,7 +319,7 @@ end
         """,
     )
 
-    entries = julia_project_search_index(root)
+    entries = asp_julia_workspace_search_index(root)
 
     @test any(
         entry -> entry.kind == "testset" &&
@@ -360,7 +360,7 @@ end
     )
     write(joinpath(root, "packages", "Member", "src", "Member.jl"), "module Member\nend\n")
 
-    entries = julia_project_search_index(root)
+    entries = asp_julia_workspace_search_index(root)
 
     @test any(
         entry -> entry.kind == "owner" &&
@@ -383,13 +383,13 @@ end
     source = joinpath(root, "standalone.jl")
     write(source, "module Standalone\nanswer() = 42\nend\n")
 
-    entries = julia_lang_search_index([root])
+    entries = asp_julia_paths_search_index([root])
 
     @test any(entry -> entry.kind == "module" && entry.name == "Standalone", entries)
     @test any(entry -> entry.kind == "function" && entry.name == "answer", entries)
     @test !any(entry -> entry.kind == "owner", entries)
 
-    results = search_julia_lang([root], "answer"; tags=["method"], limit=1)
+    results = search_asp_julia_paths([root], "answer"; tags=["method"], limit=1)
 
     @test length(results) == 1
     @test only(results).entry.name == "answer"
@@ -398,9 +398,9 @@ end
 @testset "search index rejects invalid inputs" begin
     missing = joinpath(mktempdir(), "missing")
 
-    @test_throws ErrorException julia_lang_search_index([missing])
-    @test_throws ErrorException julia_project_search_index(missing)
-    @test_throws ErrorException search_julia_index(JuliaSearchIndexEntry[], "run"; limit=-1)
+    @test_throws ErrorException asp_julia_paths_search_index([missing])
+    @test_throws ErrorException asp_julia_workspace_search_index(missing)
+    @test_throws ErrorException search_asp_julia_index(JuliaSearchIndexEntry[], "run"; limit=-1)
 end
 
 include("search_index/auxiliary_paths.jl")

@@ -2,45 +2,45 @@ using Pkg
 using SHA
 using TOML
 
-"""Run the JuliaSyntax harness over explicit Julia source roots.
+"""Run ASP Julia over explicit Julia source roots.
 
 Errors if any requested source root does not exist.
 """
-function run_julia_lang_harness(paths::Vector{<:AbstractString}; config=default_julia_harness_config())
+function run_asp_julia_paths(paths::Vector{<:AbstractString}; config=default_asp_julia_config())
     for path in paths
-        ispath(path) || error("harness path does not exist: $(path)")
+        ispath(path) || error("ASP Julia path does not exist: $(path)")
     end
     run_paths(abspath.(String.(paths)), config)
 end
 
-"""Run the project harness from a Project.toml root resolved through Pkg facts.
+"""Run ASP Julia from a workspace root resolved through Pkg facts.
 
 Errors if `project_root` does not name an existing package path.
 """
-function run_julia_project_harness(project_root::AbstractString; config=default_julia_harness_config())
+function run_asp_julia_workspace(project_root::AbstractString; config=default_asp_julia_config())
     ispath(project_root) || error("project path does not exist: $(project_root)")
     context = project_policy_context(project_root, config)
-    harness_report_from_project_context(context, context.config)
+    asp_julia_report_from_workspace_context(context, context.config)
 end
 
-"""Run explicit paths and throw when blocking Julia harness findings exist."""
-function assert_julia_lang_harness_clean(paths::Vector{<:AbstractString}; config=default_julia_harness_config())
-    report = run_julia_lang_harness(paths; config)
+"""Run explicit paths and throw when blocking ASP Julia findings exist."""
+function assert_asp_julia_paths_clean(paths::Vector{<:AbstractString}; config=default_asp_julia_config())
+    report = run_asp_julia_paths(paths; config)
     assert_clean(report)
 end
 
-"""Run a Project.toml-rooted harness check and throw on blocking findings."""
-function assert_julia_project_harness_clean(project_root::AbstractString; config=default_julia_harness_config())
-    report = run_julia_project_harness(project_root; config)
+"""Run a workspace-scoped ASP Julia check and throw on blocking findings."""
+function assert_asp_julia_workspace_clean(project_root::AbstractString; config=default_asp_julia_config())
+    report = run_asp_julia_workspace(project_root; config)
     assert_clean(report)
 end
 
 """Run project policy plus advisory self-apply checks for package test gates."""
-function assert_julia_project_harness_pkg_test_clean(
+function assert_asp_julia_pkg_test_clean(
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
-    report = run_julia_project_harness(project_root; config)
+    report = run_asp_julia_workspace(project_root; config)
     effective_config = project_policy_context(project_root, config).config
     assert_clean(report)
     if !has_agent_advice_allow_explanation(effective_config)
@@ -51,22 +51,22 @@ end
 
 function run_paths(
     paths::Vector{String},
-    config::JuliaHarnessConfig;
+    config::AspJuliaConfig;
     scope=nothing,
-    workspace_member_scopes=JuliaProjectHarnessScope[],
+    workspace_member_scopes=AspJuliaWorkspaceScope[],
 )
     parsed_files = parse_julia_files_for_paths(paths, config)
-    harness_report_from_parsed(paths, parsed_files, config; scope, workspace_member_scopes)
+    asp_julia_report_from_parsed(paths, parsed_files, config; scope, workspace_member_scopes)
 end
 
-function julia_project_harness_scope(project_root::AbstractString, config::JuliaHarnessConfig)
+function asp_julia_workspace_scope(project_root::AbstractString, config::AspJuliaConfig)
     project_facts = parse_project_toml_facts(project_root)
     root = project_facts.project_root
     source_paths = pkg_source_paths(root, project_facts, config)
     extension_paths = pkg_extension_paths(root, project_facts)
     test_paths = config.include_tests ? pkg_test_paths(root, project_facts, config) : String[]
     package_paths = pkg_package_paths(root)
-    JuliaProjectHarnessScope(
+    AspJuliaWorkspaceScope(
         root,
         project_facts.path,
         project_facts.parse_error,
@@ -92,16 +92,16 @@ function julia_project_harness_scope(project_root::AbstractString, config::Julia
 end
 
 function julia_workspace_member_scopes(
-    scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
+    scope::AspJuliaWorkspaceScope,
+    config::AspJuliaConfig,
 )
-    scopes = JuliaProjectHarnessScope[]
+    scopes = AspJuliaWorkspaceScope[]
     seen_roots = Set([scope.project_root])
     for project_path in pkg_member_project_paths(scope)
         member_root = isabspath(project_path) ? normpath(project_path) :
                       normpath(joinpath(scope.project_root, project_path))
         isdir(member_root) || continue
-        member_scope = julia_project_harness_scope(member_root, config)
+        member_scope = asp_julia_workspace_scope(member_root, config)
         member_scope.project_root in seen_roots && continue
         push!(seen_roots, member_scope.project_root)
         push!(scopes, member_scope)
@@ -109,19 +109,19 @@ function julia_workspace_member_scopes(
     scopes
 end
 
-function scope_monitored_paths(scope::JuliaProjectHarnessScope)
+function scope_monitored_paths(scope::AspJuliaWorkspaceScope)
     selected = vcat(scope.source_paths, scope.extension_paths, scope.test_paths)
     isempty(selected) ? [scope.project_root] : selected
 end
 
-function pkg_member_project_paths(scope::JuliaProjectHarnessScope)
+function pkg_member_project_paths(scope::AspJuliaWorkspaceScope)
     sort!(collect(Set(vcat(scope.workspace_projects, scope.source_dependency_projects))))
 end
 
 function pkg_source_paths(
     project_root::AbstractString,
     project_facts,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     roots = String[]
     pkg_root = package_entry_source_root(
@@ -154,7 +154,7 @@ end
 function pkg_test_paths(
     project_root::AbstractString,
     project_facts,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     existing_configured_paths(project_root, config.test_dir_names)
 end
@@ -212,144 +212,7 @@ function existing_configured_paths(project_root::AbstractString, path_names::Vec
     [joinpath(root, path_name) for path_name in path_names if ispath(joinpath(root, path_name))]
 end
 
-struct JuliaProjectTomlFacts
-    project_root::String
-    path::Union{Nothing,String}
-    parse_error::Union{Nothing,String}
-    package_name::Union{Nothing,String}
-    package_uuid::Union{Nothing,String}
-    entryfile::Union{Nothing,String}
-    direct_dependencies::Dict{String,String}
-    weak_dependencies::Dict{String,String}
-    extra_dependencies::Dict{String,String}
-    targets::Dict{String,Vector{String}}
-    compat::Dict{String,String}
-    sources::Dict{String,Dict{String,String}}
-    extensions::Dict{String,Vector{String}}
-    workspace_projects::Vector{String}
-    source_dependency_projects::Vector{String}
-end
-
-function parse_project_toml_facts(project_path::AbstractString)
-    start = project_search_start(project_path)
-    project_toml = Base.current_project(start)
-    if isnothing(project_toml)
-        root = abspath(start)
-        return empty_project_toml_facts(root, joinpath(root, "Project.toml"))
-    end
-    root = dirname(project_toml)
-    project = try
-        Pkg.Types.read_project(project_toml)
-    catch err
-        return empty_project_toml_facts(root, project_toml; parse_error=compact_error_message(err))
-    end
-    JuliaProjectTomlFacts(
-        root,
-        project_toml,
-        nothing,
-        isnothing(project.name) ? nothing : String(project.name),
-        isnothing(project.uuid) ? nothing : string(project.uuid),
-        isnothing(project.entryfile) ? nothing : String(project.entryfile),
-        string_uuid_dict(project.deps),
-        string_uuid_dict(project.weakdeps),
-        string_uuid_dict(project.extras),
-        string_vector_dict(project.targets),
-        string_value_dict(project.compat),
-        string_source_dict(project.sources),
-        string_extension_dict(project.exts),
-        string_workspace_projects(project.workspace),
-        string_source_dependency_projects(root, project.sources),
-    )
-end
-
-function empty_project_toml_facts(
-    project_root::AbstractString,
-    project_toml::Union{Nothing,String};
-    parse_error=nothing,
-)
-    JuliaProjectTomlFacts(
-        String(project_root),
-        project_toml,
-        parse_error,
-        nothing,
-        nothing,
-        nothing,
-        Dict{String,String}(),
-        Dict{String,String}(),
-        Dict{String,String}(),
-        Dict{String,Vector{String}}(),
-        Dict{String,String}(),
-        Dict{String,Dict{String,String}}(),
-        Dict{String,Vector{String}}(),
-        String[],
-        String[],
-    )
-end
-
-function compact_error_message(err)
-    replace(sprint(showerror, err), r"\s+" => " ")
-end
-
-function string_uuid_dict(values)
-    Dict(String(name) => string(uuid) for (name, uuid) in values)
-end
-
-function string_value_dict(values)
-    Dict(String(name) => project_value_string(value) for (name, value) in values)
-end
-
-function project_value_string(value)
-    :str in fieldnames(typeof(value)) ? string(getfield(value, :str)) : string(value)
-end
-
-function string_vector_dict(values)
-    Dict(String(name) => String[string(item) for item in items] for (name, items) in values)
-end
-
-function string_source_dict(values)
-    sources = Dict{String,Dict{String,String}}()
-    for (name, source) in values
-        source_name = String(name)
-        if source isa AbstractDict
-            sources[source_name] = Dict(String(key) => string(value) for (key, value) in source)
-        else
-            sources[source_name] = Dict("value" => string(source))
-        end
-    end
-    sources
-end
-
-function string_extension_dict(values)
-    Dict(String(name) => string_vector_value(value) for (name, value) in values)
-end
-
-function string_vector_value(value)
-    value isa AbstractVector && return String[string(item) for item in value]
-    String[string(value)]
-end
-
-function string_workspace_projects(workspace)
-    projects = get(workspace, "projects", String[])
-    String[string(project) for project in projects]
-end
-
-function string_source_dependency_projects(
-    project_root::AbstractString,
-    sources::Dict{String,Dict{String,String}},
-)
-    projects = String[]
-    seen = Set{String}()
-    for source in values(sources)
-        path = get(source, "path", "")
-        isempty(path) && continue
-        member_root = isabspath(path) ? normpath(path) : normpath(joinpath(project_root, path))
-        isfile(joinpath(member_root, "Project.toml")) || continue
-        member_root in seen && continue
-        push!(seen, member_root)
-        push!(projects, path)
-    end
-    sort!(projects)
-end
+include("runner/project_toml.jl")
 
 function project_search_start(project_path::AbstractString)
     path = abspath(String(project_path))
@@ -370,7 +233,7 @@ function package_entry_path(
     isfile(path) ? path : nothing
 end
 
-function discover_julia_files(paths::Vector{String}, config::JuliaHarnessConfig)
+function discover_julia_files(paths::Vector{String}, config::AspJuliaConfig)
     files = Set{String}()
     for path in paths
         discover_julia_path!(files, path, config.ignored_dir_names)

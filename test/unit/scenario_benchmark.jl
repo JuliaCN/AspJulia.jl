@@ -46,7 +46,7 @@ end
     @test all(rule -> occursin("\"rule_id\": \"$rule\"", findings), expected_rule_ids)
     @test all(criteria -> occursin("\"softwareCriteria\": \"$criteria\"", findings), expected_criteria)
 
-    @test benchmark["harness"] == "julia-test"
+    @test benchmark["provider"] == "asp-julia"
     @test benchmark["test"] == "test/unit/scenarios/software_criteria/control_flow_v1"
     assert_benchmark_durations(benchmark)
     comparison = benchmark["input_expected_comparison"]

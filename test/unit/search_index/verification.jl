@@ -29,7 +29,7 @@
     )
     write(joinpath(root, "benchmark", "runbenchmarks.jl"), "println(\"benchmark\")\n")
 
-    entries = julia_project_search_index(root)
+    entries = asp_julia_workspace_search_index(root)
     benchmark_entry = only(
         entry for entry in entries if
         entry.kind == "verification" &&
@@ -45,7 +45,7 @@
     @test occursin("benchmark_project=benchmark/Project.toml", benchmark_entry.detail)
     @test occursin("requires=benchmark_command,baseline,regression_threshold", benchmark_entry.detail)
 
-    results = search_julia_project(
+    results = search_asp_julia_workspace(
         root,
         "benchmark threshold";
         tags=["verification", "performance"],
@@ -75,7 +75,7 @@ end
     write(joinpath(root, "examples", "Project.toml"), "[deps]\n")
     write(joinpath(root, "examples", "runexamples.jl"), "println(\"example\")\n")
 
-    results = search_julia_project(root, "runexamples"; tags=["verification", "example"], limit=1)
+    results = search_asp_julia_workspace(root, "runexamples"; tags=["verification", "example"], limit=1)
 
     @test length(results) == 1
     entry = only(results).entry
@@ -109,7 +109,7 @@ end
     )
     write(joinpath(root, "docs", "make.jl"), "using Documenter\nmakedocs()\n")
 
-    results = search_julia_project(root, "documenter"; tags=["verification", "docs"], limit=1)
+    results = search_asp_julia_workspace(root, "documenter"; tags=["verification", "docs"], limit=1)
 
     @test length(results) == 1
     entry = only(results).entry

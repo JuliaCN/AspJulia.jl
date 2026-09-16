@@ -2,8 +2,8 @@
     root = mktempdir()
     write_documenter_project(root)
 
-    index = build_julia_verification_task_index(root)
-    rendered = render_julia_verification_task_index(index)
+    index = build_asp_julia_verification_task_index(root)
+    rendered = render_asp_julia_verification_task_index(index)
     docs_task = only(record for record in index.records if record.kind == "docs_build")
 
     @test [record.kind for record in index.records] == ["docs_build", "pkg_test", "stress"]
@@ -26,9 +26,9 @@ end
     root = mktempdir()
     write_algorithm_shape_project(root)
 
-    index = build_julia_verification_profile_index(root)
+    index = build_asp_julia_verification_profile_index(root)
     candidate = only(index.candidates)
-    rendered = render_julia_verification_profile_index(index)
+    rendered = render_asp_julia_verification_profile_index(index)
 
     @test candidate.responsibilities == ["latency_sensitive"]
     @test candidate.task_kinds == ["pkg_test", "performance"]
@@ -39,11 +39,11 @@ end
     @test occursin("responsibilities=latency_sensitive", rendered)
     @test occursin("algorithm_shapes=branchy,nested-loop", rendered)
 
-    task_index = build_julia_verification_task_index(root)
+    task_index = build_asp_julia_verification_task_index(root)
     task_kinds = [record.kind for record in task_index.records]
-    task_rendered = render_julia_verification_task_index(task_index)
-    advice = render_julia_verification_pending_advice(
-        build_julia_project_verification_profile(root),
+    task_rendered = render_asp_julia_verification_task_index(task_index)
+    advice = render_asp_julia_verification_pending_advice(
+        build_asp_julia_verification_profile(root),
     )
 
     @test task_kinds == ["performance", "pkg_test"]
@@ -57,8 +57,8 @@ end
     root = mktempdir()
     write_responsibility_project(root)
 
-    index = build_julia_verification_profile_index(root)
-    rendered = render_julia_verification_profile_index(index)
+    index = build_asp_julia_verification_profile_index(root)
+    rendered = render_asp_julia_verification_profile_index(index)
     candidate = only(index.candidates)
 
     @test candidate.responsibilities == [
@@ -77,17 +77,17 @@ end
         "chaos",
         "security",
     ]
-    @test candidate.evidence["direct_deps"] == "HTTP,JSON3"
+    @test candidate.evidence["direct_deps"] == "HTTP,JSON"
     @test candidate.evidence["network_roots"] == "HTTP"
-    @test candidate.evidence["persistence_roots"] == "JSON3"
+    @test candidate.evidence["persistence_roots"] == "JSON"
     @test candidate.evidence["security_roots"] == "SHA"
     @test candidate.evidence["performance_roots"] == "LinearAlgebra"
     @test occursin("responsibilities=public_api,external_dependency", rendered)
     @test occursin("tasks=pkg_test,syntax_search,stress,performance,chaos,security", rendered)
 
-    task_index = build_julia_verification_task_index(root)
+    task_index = build_asp_julia_verification_task_index(root)
     task_kinds = [record.kind for record in task_index.records]
-    task_rendered = render_julia_verification_task_index(task_index)
+    task_rendered = render_asp_julia_verification_task_index(task_index)
 
     @test task_kinds == ["chaos", "performance", "pkg_test", "security", "stress"]
     @test occursin("kind=performance state=pending phase=after_unit_tests_pass", task_rendered)
@@ -101,9 +101,9 @@ end
     @test occursin("responsibilities=public_api,external_dependency", task_rendered)
     @test occursin("Agent should add or run Julia-native performance evidence", task_rendered)
 
-    profile = build_julia_project_verification_profile(root)
-    advice = render_julia_verification_pending_advice(profile)
-    receipt_template = render_julia_verification_receipt_template(task_index)
+    profile = build_asp_julia_verification_profile(root)
+    advice = render_asp_julia_verification_pending_advice(profile)
+    receipt_template = render_asp_julia_verification_receipt_template(task_index)
 
     @test occursin("[verify-advice] pending=4", advice)
     @test occursin("kind=performance", advice)
@@ -119,24 +119,24 @@ end
 @testset "verification profile reviews default agent receipt file" begin
     root = mktempdir()
     write_verification_project(root)
-    receipt_root = joinpath(root, ".julia-harness")
+    receipt_root = joinpath(root, ".asp-julia")
     mkpath(receipt_root)
     receipt_path = joinpath(receipt_root, "verification-receipts.json")
 
-    index = build_julia_verification_task_index(root)
+    index = build_asp_julia_verification_task_index(root)
     stress = only(record for record in index.records if record.kind == "stress")
-    write(receipt_path, render_julia_verification_receipt_template(index))
+    write(receipt_path, render_asp_julia_verification_receipt_template(index))
 
-    profile = build_julia_project_verification_profile(root)
-    rendered = render_julia_verification_profile(profile)
-    json = render_julia_verification_profile_json(profile)
+    profile = build_asp_julia_verification_profile(root)
+    rendered = render_asp_julia_verification_profile(profile)
+    json = render_asp_julia_verification_profile_json(profile)
 
     @test length(profile.receipt_reviews) == 1
     @test only(profile.receipt_reviews).status == :incomplete
     @test occursin("VerificationReceiptReview: count=1 accepted=0 incomplete=1", rendered)
     @test occursin("weak=scenario,load_steps,p50_ms,p99_ms,threshold,result", rendered)
     @test occursin("\"receipt_reviews\"", json)
-    @test_throws ErrorException assert_julia_project_harness_test_profile_clean(
+    @test_throws ErrorException assert_asp_julia_test_profile_clean(
         root;
         advice_io=nothing,
     )
@@ -148,7 +148,7 @@ end
         """,
     )
     accepted_advice_out = IOBuffer()
-    accepted_profile = assert_julia_project_harness_test_profile_clean(
+    accepted_profile = assert_asp_julia_test_profile_clean(
         root;
         advice_io=accepted_advice_out,
     )

@@ -4,7 +4,7 @@ const JULIA_EXAMPLE_ENTRY_CANDIDATES = [
     "examples.jl",
 ]
 
-function example_verification_tasks(scope::JuliaProjectHarnessScope)
+function example_verification_tasks(scope::AspJuliaWorkspaceScope)
     examples_root = joinpath(scope.project_root, "examples")
     isfile(joinpath(examples_root, "Project.toml")) || return JuliaVerificationTaskRecord[]
     entry_path = example_entry_path(examples_root)
@@ -21,7 +21,7 @@ function example_entry_path(examples_root::AbstractString)
 end
 
 function example_verification_task(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     examples_root::AbstractString,
     entry_path::AbstractString,
 )
@@ -45,7 +45,7 @@ function example_verification_task(
 end
 
 function example_verification_command(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     examples_root::AbstractString,
     entry_path::AbstractString,
 )
@@ -59,7 +59,7 @@ function example_verification_command(
 end
 
 function example_verification_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     examples_root::AbstractString,
     entry_path::AbstractString,
     command::Vector{String},

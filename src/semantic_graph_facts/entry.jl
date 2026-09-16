@@ -1,12 +1,12 @@
 """Render semantic graph packets from parser-owned field/type facts."""
 
 """Render parser-owned field/type collection facts as a semantic graph JSON packet."""
-function render_julia_semantic_graph_facts_json(
+function render_asp_julia_semantic_graph_facts_json(
     project_root::AbstractString,
     query::AbstractString,
     stdin_text::AbstractString,
 )
-    JSON3.write(julia_semantic_graph_facts_packet(project_root, query, stdin_text))
+    JSON.json(julia_semantic_graph_facts_packet(project_root, query, stdin_text))
 end
 
 function julia_semantic_graph_facts_packet(

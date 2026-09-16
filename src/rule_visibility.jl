@@ -54,23 +54,23 @@ const RULE_VISIBILITY = Dict(
 )
 
 """
-    julia_rule_visibility(rule_id)
+    asp_julia_rule_visibility(rule_id)
 
 Return the agent-facing visibility contract for `rule_id`, or `nothing` when
 the rule has no structured visibility payload yet.
 """
-function julia_rule_visibility(rule_id::AbstractString)
+function asp_julia_rule_visibility(rule_id::AbstractString)
     get(RULE_VISIBILITY, String(rule_id), nothing)
 end
 
 """
-    render_julia_rule_visibility(rule_id)
+    render_asp_julia_rule_visibility(rule_id)
 
 Render accepted AST shapes, rejected shapes, examples, and repair notes for a
-harness rule. This is intended for Agent repair loops and compact CLI output.
+ASP Julia rule. This is intended for Agent repair loops and compact CLI output.
 """
-function render_julia_rule_visibility(rule_id::AbstractString)
-    visibility = julia_rule_visibility(rule_id)
+function render_asp_julia_rule_visibility(rule_id::AbstractString)
+    visibility = asp_julia_rule_visibility(rule_id)
     isnothing(visibility) && return ""
     render_rule_visibility(visibility)
 end

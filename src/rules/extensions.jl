@@ -1,17 +1,17 @@
 function extension_entrypoint_findings(
-    scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    scope::AspJuliaWorkspaceScope,
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for name in sort!(collect(keys(scope.extensions)))
         any(isfile, extension_entrypoint_candidates(scope.project_root, name)) && continue
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R011];
-                summary="Project extension `$(name)` is declared but no extension entrypoint exists.",
-                location=SourceLocation(scope.project_toml_path, 1, 0),
-                label="add the extension module file under ext/ using the Pkg extension name",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R011],
+                "Project extension `$(name)` is declared but no extension entrypoint exists.",
+                SourceLocation(scope.project_toml_path, 1, 0),
+                "add the extension module file under ext/ using the Pkg extension name",
             ),
         )
     end
@@ -19,22 +19,22 @@ function extension_entrypoint_findings(
 end
 
 function extension_dependency_findings(
-    scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    scope::AspJuliaWorkspaceScope,
+    rules::Dict{String,AspJuliaRule},
 )
     stdlib_roots = julia_stdlib_import_roots()
     declared = union(Set(keys(scope.direct_dependencies)), Set(keys(scope.weak_dependencies)), stdlib_roots)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (extension_name, dependencies) in sort!(collect(scope.extensions))
         for dependency in sort!(copy(dependencies))
             dependency in declared && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[JULIA_PROJ_R012];
-                    summary="Project extension `$(extension_name)` is triggered by `$(dependency)`, but `$(dependency)` is not declared in `[weakdeps]` or `[deps]`.",
-                    location=SourceLocation(scope.project_toml_path, 1, 0),
-                    label="declare the extension trigger as a weak dependency or regular dependency",
+                finding_from_rule_typed(
+                    rules[JULIA_PROJ_R012],
+                    "Project extension `$(extension_name)` is triggered by `$(dependency)`, but `$(dependency)` is not declared in `[weakdeps]` or `[deps]`.",
+                    SourceLocation(scope.project_toml_path, 1, 0),
+                    "declare the extension trigger as a weak dependency or regular dependency",
                 ),
             )
         end
@@ -50,13 +50,13 @@ function extension_entrypoint_candidates(project_root::AbstractString, name::Abs
     ]
 end
 
-function extension_import_roots(scope::JuliaProjectHarnessScope, path::AbstractString)
+function extension_import_roots(scope::AspJuliaWorkspaceScope, path::AbstractString)
     extension_name = extension_name_for_path(scope, path)
     isnothing(extension_name) && return Set{String}()
     Set(get(scope.extensions, extension_name, String[]))
 end
 
-function extension_name_for_path(scope::JuliaProjectHarnessScope, path::AbstractString)
+function extension_name_for_path(scope::AspJuliaWorkspaceScope, path::AbstractString)
     for name in keys(scope.extensions)
         if any(
             candidate -> normpath(path) == normpath(candidate),

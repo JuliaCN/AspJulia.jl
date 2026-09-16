@@ -11,10 +11,10 @@
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R021", rendered)
     @test occursin("External method extension risks type piracy", rendered)
     @test occursin("Base.show", rendered)
@@ -37,10 +37,10 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R021", rendered)
 end
 
@@ -58,10 +58,10 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R021", rendered)
 end
 
@@ -80,13 +80,13 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R004", rendered)
     @test occursin("Public method exposes a stringly domain argument", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner reports public API owner conflicts" begin
@@ -117,16 +117,16 @@ end
         "Payload(value::String) = Payload(length(value))\n",
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R005", rendered)
     @test occursin("Public API name spans multiple owners", rendered)
     @test occursin("src/api.jl", rendered)
     @test occursin("src/fallbacks.jl", rendered)
     @test occursin("Document the extension pattern", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts same-owner public type constructor family" begin
@@ -154,10 +154,10 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner reports scattered public method family advice" begin
@@ -183,14 +183,14 @@ end
     )
     write(joinpath(root, "src", "fallbacks.jl"), "run(value::String) = value\n")
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R009", rendered)
     @test occursin("Public method family is scattered across owners", rendered)
     @test occursin("documented dispatch pattern", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts documented public method family extension pattern" begin
@@ -219,10 +219,10 @@ end
     )
     write(joinpath(root, "src", "fallbacks.jl"), "run(value::String) = value\n")
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 @testset "project runner reports undocumented module owner fanout" begin
     root = mktempdir()
@@ -247,13 +247,13 @@ end
         write(joinpath(root, "src", "owners", "$(name).jl"), "$(name)() = 1\n")
     end
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R006", rendered)
     @test occursin("Module owner fans out without an intent doc", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts documented module owner fanout" begin
@@ -280,8 +280,8 @@ end
         write(joinpath(root, "src", "owners", "$(name).jl"), "$(name)() = 1\n")
     end
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end

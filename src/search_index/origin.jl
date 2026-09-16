@@ -18,7 +18,7 @@ function parsed_search_entries(parsed::ParsedJuliaFile)
 end
 
 function parsed_files_for_search_scope(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     [
@@ -30,7 +30,7 @@ function parsed_files_for_search_scope(
 end
 
 function search_origin_tags(
-    owner_scopes::Vector{JuliaProjectHarnessScope},
+    owner_scopes::Vector{AspJuliaWorkspaceScope},
     path::AbstractString,
 )
     for scope in owner_scopes
