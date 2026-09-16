@@ -27,55 +27,12 @@ function julia_agent_method_descriptors()
     ]
 end
 
-"""Return schema registrations advertised by the Julia provider from `schema_root`.
+"""Return Julia-owned schema registrations.
 
-Throws `ErrorException` when the schema root is missing or a schema document
-does not declare a string `schemaId`, `registryId`, or `\$id` identity.
+Julia currently owns no semantic schema. Shared protocol schemas are projected
+by Runtime Server and must never be reconstructed by scanning this package.
 """
-function asp_julia_schema_registrations(
-    schema_root::AbstractString=joinpath(normpath(joinpath(@__DIR__, "..")), "schemas"),
-)
-    isdir(schema_root) || error("schema root does not exist: $(schema_root)")
-    registrations = Dict{String,String}[]
-    schema_files = filter(
-        name -> !startswith(name, ".") && endswith(name, ".json"),
-        readdir(schema_root),
-    )
-    for file_name in sort!(schema_files)
-        document = JSON.parsefile(joinpath(schema_root, file_name))
-        properties = get(document, "properties", Dict{String,Any}())
-        schema_id = get(document, "schemaId", nothing)
-        if !(schema_id isa AbstractString)
-            schema_id = get(get(properties, "schemaId", Dict{String,Any}()), "const", nothing)
-        end
-        if !(schema_id isa AbstractString)
-            schema_id = get(get(properties, "registryId", Dict{String,Any}()), "const", nothing)
-        end
-        schema_id isa AbstractString || (schema_id = get(document, "\$id", nothing))
-        schema_id isa AbstractString || error("schema $file_name has no string schema identity")
-        schema_version = get(document, "schemaVersion", nothing)
-        if isnothing(schema_version)
-            schema_version = get(
-                get(properties, "schemaVersion", Dict{String,Any}()),
-                "const",
-                nothing,
-            )
-        end
-        if isnothing(schema_version)
-            schema_version = get(
-                get(properties, "registryVersion", Dict{String,Any}()),
-                "const",
-                "1",
-            )
-        end
-        push!(registrations, Dict(
-            "path" => "schemas/$file_name",
-            "schemaId" => String(schema_id),
-            "schemaVersion" => string(schema_version),
-        ))
-    end
-    registrations
-end
+asp_julia_schema_registrations() = Dict{String,String}[]
 
 """Build the Julia semantic-language registry packet for client discovery."""
 function asp_julia_agent_registry_packet(workspace_root::AbstractString=pwd())

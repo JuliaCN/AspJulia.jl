@@ -135,15 +135,7 @@ end
     @test !("agent/guide" in language.methods)
     @test "agent/doctor" in language.methods
     @test "agent/registry" in language.methods
-    @test any(
-        schema ->
-            schema.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index",
-        language.schemas,
-    )
-    @test any(
-        schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json",
-        language.schemas,
-    )
+    @test isempty(language.schemas)
     search_descriptors = filter(
         descriptor -> startswith(String(descriptor.method), "search/"),
         language.methodDescriptors,
@@ -151,42 +143,11 @@ end
     @test isempty(search_descriptors)
 end
 
-@testset "package-local semantic schemas stay synchronized when protocol root is present" begin
+@testset "shared schemas remain Runtime-owned" begin
     package_root = normpath(joinpath(@__DIR__, "..", ".."))
-    protocol_schemas = normpath(joinpath(package_root, "..", "..", "schemas"))
-    schema_dir = joinpath(package_root, "schemas")
     registrations = asp_julia_schema_registrations()
-    @test_throws ErrorException asp_julia_schema_registrations(joinpath(package_root, "missing-schemas"))
-    registered_paths = Set(registration["path"] for registration in registrations)
-    package_schema_paths = Set(
-        "schemas/$file_name"
-        for file_name in readdir(schema_dir)
-        if !startswith(file_name, ".") && endswith(file_name, ".json")
-    )
-
-    @test registered_paths == package_schema_paths
-    @test any(
-        registration ->
-            registration["schemaId"] ==
-            "agent.semantic-protocols.semantic-language-registry",
-        registrations,
-    )
-    @test any(
-        registration ->
-            registration["schemaId"] ==
-            "agent.semantic-protocols.semantic-native-syntax-fact-index",
-        registrations,
-    )
-    for registration in registrations
-        package_schema_path = joinpath(package_root, registration["path"])
-        @test isfile(package_schema_path)
-        if isdir(protocol_schemas)
-            protocol_schema_path =
-                joinpath(protocol_schemas, basename(registration["path"]))
-            isfile(protocol_schema_path) || continue
-            @test read(package_schema_path, String) == read(protocol_schema_path, String)
-        end
-    end
+    @test isempty(registrations)
+    @test !isfile(joinpath(package_root, "schemas", "semantic-language-registry.v1.schema.json"))
 end
 
 @testset "cli export index packet" begin
