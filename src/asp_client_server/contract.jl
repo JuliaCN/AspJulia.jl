@@ -15,6 +15,16 @@ const ASP_CLIENT_SERVER_PROJECTION_BATCH_OPERATION = Dict(
     "requestSchema" => Dict("schemaId" => "agent.semantic-protocols.provider-language-projection-batch-request", "schemaVersion" => "1"),
     "responseSchema" => Dict("schemaId" => "agent.semantic-protocols.provider-language-projection-batch-response", "schemaVersion" => "1"),
 )
+const ASP_CLIENT_SERVER_AST_INSPECT_OPERATION = Dict(
+    "operation" => "ast-inspect",
+    "requestSchema" => Dict("schemaId" => "agent.semantic-protocols.ast-inspect", "schemaVersion" => "1"),
+    "responseSchema" => Dict("schemaId" => "agent.semantic-protocols.ast-inspect", "schemaVersion" => "1"),
+)
+const ASP_CLIENT_SERVER_AST_VERIFY_OPERATION = Dict(
+    "operation" => "ast-verify",
+    "requestSchema" => Dict("schemaId" => "agent.semantic-protocols.ast-verify", "schemaVersion" => "1"),
+    "responseSchema" => Dict("schemaId" => "agent.semantic-protocols.ast-verify", "schemaVersion" => "1"),
+)
 
 function asp_client_server_contract(environment)::Dict{String,Any}
     return Dict{String,Any}(
@@ -29,6 +39,8 @@ function asp_client_server_contract(environment)::Dict{String,Any}
         "operations" => Any[
             ASP_CLIENT_SERVER_PROJECTION_BATCH_OPERATION,
             ASP_CLIENT_SERVER_PROJECT_RESOLUTION_OPERATION,
+            ASP_CLIENT_SERVER_AST_INSPECT_OPERATION,
+            ASP_CLIENT_SERVER_AST_VERIFY_OPERATION,
         ],
     )
 end
@@ -58,8 +70,25 @@ function asp_client_server_response(
         error("resident Julia HTTP provider request identity is invalid")
     end
     payload = Dict{String,Any}(payload)
-    operation in ("projection-batch", "project-resolution") ||
+    operation in ("projection-batch", "project-resolution", "ast-inspect", "ast-verify") ||
         error("resident Julia HTTP provider operation is not admitted: $(operation)")
+    if operation == "ast-inspect"
+        return Dict{String,Any}(
+            "schemaId" => ASP_CLIENT_SERVER_RESPONSE_SCHEMA,
+            "schemaVersion" => "1",
+            "requestId" => request_id,
+            "outcome" => "ready",
+            "payload" => handle_julia_ast_inspect(payload),
+        )
+    elseif operation == "ast-verify"
+        return Dict{String,Any}(
+            "schemaId" => ASP_CLIENT_SERVER_RESPONSE_SCHEMA,
+            "schemaVersion" => "1",
+            "requestId" => request_id,
+            "outcome" => "ready",
+            "payload" => handle_julia_ast_verify(payload),
+        )
+    end
     cached = cache[]
     response_payload = if !isnothing(cached) &&
                           cached.operation == operation &&
