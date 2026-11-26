@@ -41,9 +41,11 @@ using Test
     @test health_payload["languageId"] == "julia"
     @test health_payload["transport"] == "http-json"
     operations = health_payload["operations"]
-    @test length(operations) == 2
+    @test length(operations) == 4
     @test operations[1]["operation"] == "projection-batch"
     @test operations[2]["operation"] == "project-resolution"
+    @test operations[3]["operation"] == "ast-inspect"
+    @test operations[4]["operation"] == "ast-verify"
 
     source = "function projected(value)\n    value\nend\n"
     projection_header = Dict{String,Any}(
