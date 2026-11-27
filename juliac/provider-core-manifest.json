@@ -6,6 +6,12 @@
   "displayName": "Julia",
   "extensions": [".jl"],
   "projectMarkers": ["Project.toml"],
+  "project": {
+    "markers": ["Project.toml"],
+    "entryFiles": ["src/Main.jl"],
+    "workspaceFiles": ["Project.toml", "Manifest.toml"],
+    "configFiles": ["Project.toml"]
+  },
   "syntaxSurface": {
     "lineComment": "#",
     "blockComment": ["#=", "=#"],
@@ -24,5 +30,26 @@
     "astVerify": true,
     "openEdb": true,
     "projectResolution": true
+  },
+  "special": {
+    "kindMappings": [
+      { "nativeLanguageKind": "function", "generalKind": "function", "description": "Julia function / multiple-dispatch method definition" },
+      { "nativeLanguageKind": "macro", "generalKind": "macro", "description": "Julia hygienic macro definition" },
+      { "nativeLanguageKind": "struct", "generalKind": "struct", "description": "Julia concrete struct definition" },
+      { "nativeLanguageKind": "abstract", "generalKind": "trait", "description": "Julia abstract type hierarchy node" },
+      { "nativeLanguageKind": "module", "generalKind": "module", "description": "Julia module namespace" },
+      { "nativeLanguageKind": "using", "generalKind": "import", "description": "Julia using import declaration" },
+      { "nativeLanguageKind": "import", "generalKind": "import", "description": "Julia import declaration" }
+    ],
+    "specialRelations": ["julia_fn", "julia_macro", "julia_struct", "julia_abstract", "julia_module"],
+    "schema": {
+      "type": "object",
+      "properties": {
+        "exported": {
+          "type": "boolean",
+          "description": "Filter Julia symbols exported from a module"
+        }
+      }
+    }
   }
 }
