@@ -39,7 +39,7 @@ function julia_query_entry_code(entry::JuliaSearchIndexEntry, project_root::Abst
 end
 
 function julia_query_projection(entry::JuliaSearchIndexEntry, project_root::AbstractString, read::String)
-    owner_path = search_entry_owner_path(entry, project_root)
+    owner_path = julia_index_owner_path(entry, project_root)
     code = julia_query_entry_code(entry, project_root)
     Dict{String,Any}(
         "code" => code,

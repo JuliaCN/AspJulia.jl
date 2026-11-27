@@ -1,4 +1,4 @@
-function snapshot_moshi_lines(scope::JuliaProjectHarnessScope, parsed_files::Vector{ParsedJuliaFile})
+function snapshot_moshi_lines(scope::AspJuliaWorkspaceScope, parsed_files::Vector{ParsedJuliaFile})
     lines = moshi_extension_snapshot_lines(scope)
     for parsed in parsed_files
         isempty(parsed.syntax_facts.moshi) && continue

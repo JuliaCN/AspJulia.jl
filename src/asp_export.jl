@@ -3,7 +3,7 @@ const JULIA_INDEX_EXPORT_SCHEMA_VERSION = "1"
 const JULIA_INDEX_EXPORT_PROTOCOL_ID = "agent.semantic-protocols.semantic-language"
 const JULIA_INDEX_EXPORT_PROTOCOL_VERSION = "1"
 const JULIA_INDEX_EXPORT_LANGUAGE_ID = "julia"
-const JULIA_INDEX_EXPORT_PROVIDER_ID = "julia-lang-project-harness"
+const JULIA_INDEX_EXPORT_PROVIDER_ID = "asp-julia"
 
 const JULIA_INDEX_FACT_KIND_MAP = Dict(
     "module" => "module",
@@ -118,11 +118,31 @@ function asp_entry_relations(entry::JuliaSearchIndexEntry, owner_path::AbstractS
     relations
 end
 
-function asp_search_index_fact(entry::JuliaSearchIndexEntry, project_root::AbstractString)
-    owner_path = search_entry_owner_path(entry, project_root)
+function julia_index_owner_path(
+    entry::JuliaSearchIndexEntry,
+    project_root::AbstractString,
+)
+    entry.kind == "owner" && return normalized_owner_path(entry.name)
+    isnothing(entry.location.path) && return "<memory>"
+    path = entry.location.path::String
+    isabspath(path) || return normalized_owner_path(path)
+    root = realpath(String(project_root))
+    path = realpath(path)
+    path == root && return "."
+    prefix = root * string(Base.Filesystem.path_separator)
+    startswith(path, prefix) ||
+        throw(ArgumentError("native syntax fact escaped project root: $path"))
+    normalized_owner_path(SubString(path, nextind(path, lastindex(prefix))))
+end
+
+function julia_native_syntax_fact(
+    entry::JuliaSearchIndexEntry,
+    project_root::AbstractString,
+)::Dict{String,Any}
+    owner_path = julia_index_owner_path(entry, project_root)
     qualified_name = asp_qualified_name(entry, owner_path)
     relations = asp_entry_relations(entry, owner_path)
-    fact = Dict(
+    fact = Dict{String,Any}(
         "id" => asp_fact_id(entry, owner_path),
         "kind" => asp_fact_kind(entry),
         "source" => asp_fact_source(entry),
@@ -180,12 +200,12 @@ function asp_index_descriptors(facts::Vector{Dict{String,Any}})
 end
 
 """Build a main-schema native syntax fact index packet for ASP caches."""
-function julia_index_export_packet(project_root::AbstractString)
+function asp_julia_index_export_packet(project_root::AbstractString)
     root = abspath(String(project_root))
-    config = default_julia_harness_config()
-    scope = julia_project_harness_scope(root, config)
-    entries = julia_project_search_index(root; config)
-    facts = [asp_search_index_fact(entry, root) for entry in entries]
+    config = default_asp_julia_config()
+    scope = asp_julia_workspace_scope(root, config)
+    entries = asp_julia_workspace_search_index(root; config)
+    facts = [julia_native_syntax_fact(entry, root) for entry in entries]
     Dict(
         "schemaId" => JULIA_INDEX_EXPORT_SCHEMA_ID,
         "schemaVersion" => JULIA_INDEX_EXPORT_SCHEMA_VERSION,
@@ -201,15 +221,15 @@ function julia_index_export_packet(project_root::AbstractString)
         "notes" => [
             Dict(
                 "kind" => "julia-syntax-authority",
-                "message" => "Facts are derived from JuliaSyntax-backed JuliaLangProjectHarness search entries.",
+                "message" => "Facts are derived from JuliaSyntax-backed AspJulia search entries.",
             ),
         ],
     )
 end
 
 """Render the ASP Julia index export packet as one JSON document."""
-function render_julia_index_export_json(project_root::AbstractString)
-    JSON3.write(julia_index_export_packet(project_root))
+function render_asp_julia_index_export_json(project_root::AbstractString)
+    JSON.json(asp_julia_index_export_packet(project_root))
 end
 
 """Run the agent-facing `export index` CLI used by ASP cache refreshes.
@@ -217,14 +237,21 @@ end
 Requires `args[1] == "index"` when arguments are provided, and throws an
 `ErrorException` for missing or unknown export views.
 """
-function run_julia_harness_export_cli(args::Vector{String}; out::IO=stdout)
+function run_asp_julia_export_cli(args::Vector{String}; out::IO=stdout)
     isempty(args) && error("export requires a view")
     view = first(args)
     if view == "index"
         project_root = length(args) >= 2 ? args[2] : pwd()
-        print(out, render_julia_index_export_json(project_root))
+        print(out, render_asp_julia_index_export_json(project_root))
         print(out, "\n")
         return 0
     end
     error("unknown export view: $(view)")
+end
+normalized_owner_path(path::AbstractString) = slash_path(normpath(String(path)))
+
+function is_julia_test_path(path::AbstractString)
+    owner_path = normalized_owner_path(path)
+    startswith(owner_path, "test/") || startswith(owner_path, "tests/") ||
+        occursin("/test/", "/$(owner_path)") || occursin("/tests/", "/$(owner_path)")
 end

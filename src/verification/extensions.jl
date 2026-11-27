@@ -1,4 +1,4 @@
-function extension_verification_tasks(scope::JuliaProjectHarnessScope)
+function extension_verification_tasks(scope::AspJuliaWorkspaceScope)
     records = JuliaVerificationTaskRecord[]
     for (extension_name, dependencies) in sort(collect(scope.extensions); by=first)
         owner_path = extension_owner_path(scope, extension_name)
@@ -27,7 +27,7 @@ function extension_verification_tasks(scope::JuliaProjectHarnessScope)
 end
 
 function extension_activation_state(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     dependencies::Vector{String},
 )
     test_roots = test_target_import_roots(scope)
@@ -35,18 +35,18 @@ function extension_activation_state(
     "missing_test_target"
 end
 
-function extension_activation_command(scope::JuliaProjectHarnessScope, activation::AbstractString)
+function extension_activation_command(scope::AspJuliaWorkspaceScope, activation::AbstractString)
     activation == "test_target" &&
         return ["julia", "--project=$(scope.project_root)", "-e", "using Pkg; Pkg.test()"]
     String[]
 end
 
-function extension_test_target_summary(scope::JuliaProjectHarnessScope)
+function extension_test_target_summary(scope::AspJuliaWorkspaceScope)
     join(sort!(collect(test_target_import_roots(scope))), ",")
 end
 
 function extension_boundary_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     extension_name::AbstractString,
     dependencies::Vector{String},
     activation::AbstractString,
@@ -61,7 +61,7 @@ function extension_boundary_evidence(
 end
 
 function extension_capability_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     extension_name::AbstractString,
     dependencies::Vector{String},
 )

@@ -29,8 +29,8 @@ function julia_semantic_graph_candidate_files(root::AbstractString, stdin_text::
         isfile(absolute) && endswith(lowercase(absolute), ".jl") && push!(candidates, abspath(absolute))
     end
     if isempty(candidates)
-        config = default_julia_harness_config()
-        scope = julia_project_harness_scope(root, config)
+        config = default_asp_julia_config()
+        scope = asp_julia_workspace_scope(root, config)
         workspace_member_scopes = julia_workspace_member_scopes(scope, config)
         monitored_paths = vcat(
             scope_search_paths(scope),

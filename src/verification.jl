@@ -1,19 +1,19 @@
 """Build agent-runnable verification tasks for a Julia project root."""
-function build_julia_verification_task_index(
+function build_asp_julia_verification_task_index(
     project_root::AbstractString;
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     context = project_policy_context(project_root, config)
     verification_task_index_from_context(context, context.config)
 end
 
 """Build the in-test verification profile that agents should keep green."""
-function build_julia_project_verification_profile(
+function build_asp_julia_verification_profile(
     project_root::AbstractString=pwd();
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
 )
     context = project_policy_context(project_root, config)
-    report = harness_report_from_project_context(context, context.config)
+    report = asp_julia_report_from_workspace_context(context, context.config)
     task_index = verification_task_index_from_context(context, context.config)
     profile_index = verification_profile_index_from_context(context, context.config)
     receipt_reviews = review_julia_project_verification_receipts(task_index)
@@ -21,12 +21,12 @@ function build_julia_project_verification_profile(
 end
 
 """Assert the package's JuliaSyntax policy and verification profile from Pkg.test."""
-function assert_julia_project_harness_test_profile_clean(
+function assert_asp_julia_test_profile_clean(
     project_root::AbstractString=pwd();
-    config=default_julia_harness_config(),
+    config=default_asp_julia_config(),
     advice_io::Union{Nothing,IO}=stdout,
 )
-    profile = build_julia_project_verification_profile(project_root; config)
+    profile = build_asp_julia_verification_profile(project_root; config)
     effective_config = project_policy_context(project_root, config).config
     has_blocking = !is_clean(profile.report)
     has_advice = !has_agent_advice_allow_explanation(effective_config) &&
@@ -36,23 +36,23 @@ function assert_julia_project_harness_test_profile_clean(
         profile.receipt_reviews,
     )
     if has_blocking || has_advice || has_receipt_failures
-        error(render_julia_verification_profile(profile))
+        error(render_asp_julia_verification_profile(profile))
     end
     if !isnothing(advice_io)
-        print(advice_io, render_julia_verification_pending_advice(profile))
+        print(advice_io, render_asp_julia_verification_pending_advice(profile))
     end
     profile
 end
 
 function verification_task_records_for_scope(
-    scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
+    scope::AspJuliaWorkspaceScope,
+    config::AspJuliaConfig,
     parsed_files::Vector{ParsedJuliaFile}=parsed_julia_files_for_scope(scope, config),
 )
     records = JuliaVerificationTaskRecord[]
     push!(records, pkg_test_verification_task(scope))
-    if has_harness_dependency(scope)
-        push!(records, harness_self_policy_verification_task(scope))
+    if has_asp_julia_dependency(scope)
+        push!(records, asp_julia_self_policy_verification_task(scope))
         push!(records, syntax_search_verification_task(scope))
     end
     benchmark_records = benchmark_verification_tasks(scope)
@@ -72,7 +72,7 @@ function verification_task_records_for_scope(
     filter(!isnothing, records)
 end
 
-function parsed_julia_files_for_scope(scope::JuliaProjectHarnessScope, config::JuliaHarnessConfig)
+function parsed_julia_files_for_scope(scope::AspJuliaWorkspaceScope, config::AspJuliaConfig)
     [
         parse_julia_file(path) for path in discover_julia_files(
             scope_monitored_paths(scope),
@@ -81,7 +81,7 @@ function parsed_julia_files_for_scope(scope::JuliaProjectHarnessScope, config::J
     ]
 end
 
-function pkg_test_verification_task(scope::JuliaProjectHarnessScope)
+function pkg_test_verification_task(scope::AspJuliaWorkspaceScope)
     owner_path = preferred_test_owner_path(scope)
     JuliaVerificationTaskRecord(
         verification_fingerprint(
@@ -105,15 +105,15 @@ function pkg_test_verification_task(scope::JuliaProjectHarnessScope)
     )
 end
 
-function harness_self_policy_verification_task(scope::JuliaProjectHarnessScope)
+function asp_julia_self_policy_verification_task(scope::AspJuliaWorkspaceScope)
     owner_path = preferred_test_owner_path(scope)
     JuliaVerificationTaskRecord(
         verification_fingerprint(
-            "harness_policy",
+            "asp_julia_policy",
             verification_scope_fingerprint(scope),
             verification_owner_fingerprint_part(scope, owner_path),
         ),
-        "harness_policy",
+        "asp_julia_policy",
         "pending",
         "after_unit_tests_pass",
         scope.project_root,
@@ -123,18 +123,18 @@ function harness_self_policy_verification_task(scope::JuliaProjectHarnessScope)
             "julia",
             "--project=$(scope.project_root)",
             "-e",
-            "using JuliaLangProjectHarness; assert_julia_project_harness_test_profile_clean(pwd())",
+            "using AspJulia; assert_asp_julia_test_profile_clean(pwd())",
         ],
         verification_evidence(
             "package" => something(scope.package_name, "<unnamed>"),
-            "dependency" => "JuliaLangProjectHarness",
+            "dependency" => "AspJulia",
             "profile" => "test",
         ),
-        "Run the in-test harness verification profile that agents should keep green.",
+        "Run the in-test ASP Julia verification profile that agents should keep green.",
     )
 end
 
-function syntax_search_verification_task(scope::JuliaProjectHarnessScope)
+function syntax_search_verification_task(scope::AspJuliaWorkspaceScope)
     owner_path = preferred_source_owner_path(scope)
     JuliaVerificationTaskRecord(
         verification_fingerprint(
@@ -152,7 +152,7 @@ function syntax_search_verification_task(scope::JuliaProjectHarnessScope)
             "julia",
             "--project=$(scope.project_root)",
             "-e",
-            "using JuliaLangProjectHarness; julia_project_search_index(pwd())",
+            "using AspJulia; asp_julia_workspace_search_index(pwd())",
         ],
         verification_evidence(
             "sources" => string(length(scope.source_paths)),
@@ -162,7 +162,7 @@ function syntax_search_verification_task(scope::JuliaProjectHarnessScope)
     )
 end
 
-function docs_verification_tasks(scope::JuliaProjectHarnessScope)
+function docs_verification_tasks(scope::AspJuliaWorkspaceScope)
     docs_root = joinpath(scope.project_root, "docs")
     docs_project = joinpath(docs_root, "Project.toml")
     docs_make = joinpath(docs_root, "make.jl")
@@ -210,7 +210,7 @@ const JULIA_AGENT_VERIFICATION_TASK_KINDS = Set([
 ])
 
 function inferred_verification_task_records(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile};
     exclude_task_kinds::Set{String}=Set{String}(),
 )
@@ -225,7 +225,7 @@ function inferred_verification_task_records(
 end
 
 function inferred_verification_task_record(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     candidate::JuliaVerificationProfileCandidate,
     task_kind::AbstractString,
 )
@@ -268,26 +268,26 @@ function inferred_verification_task_reason(task_kind::AbstractString)
     "Agent should add or run verification evidence for this inferred responsibility."
 end
 
-function has_harness_dependency(scope::JuliaProjectHarnessScope)
-    scope.package_name == "JuliaLangProjectHarness" ||
-        haskey(scope.direct_dependencies, "JuliaLangProjectHarness") ||
-        haskey(scope.extra_dependencies, "JuliaLangProjectHarness")
+function has_asp_julia_dependency(scope::AspJuliaWorkspaceScope)
+    scope.package_name == "AspJulia" ||
+        haskey(scope.direct_dependencies, "AspJulia") ||
+        haskey(scope.extra_dependencies, "AspJulia")
 end
 
-function preferred_test_owner_path(scope::JuliaProjectHarnessScope)
+function preferred_test_owner_path(scope::AspJuliaWorkspaceScope)
     runtests = joinpath(scope.project_root, "test", "runtests.jl")
     isfile(runtests) && return runtests
     !isempty(scope.test_paths) && return first(sort(scope.test_paths))
     something(scope.project_toml_path, scope.project_root)
 end
 
-function preferred_source_owner_path(scope::JuliaProjectHarnessScope)
+function preferred_source_owner_path(scope::AspJuliaWorkspaceScope)
     !isnothing(scope.package_entry_path) && return scope.package_entry_path
     !isempty(scope.source_paths) && return first(sort(scope.source_paths))
     something(scope.project_toml_path, scope.project_root)
 end
 
-function extension_owner_path(scope::JuliaProjectHarnessScope, extension_name::AbstractString)
+function extension_owner_path(scope::AspJuliaWorkspaceScope, extension_name::AbstractString)
     for root in scope.extension_paths
         candidate = joinpath(root, "$(extension_name).jl")
         isfile(candidate) && return candidate
@@ -295,7 +295,7 @@ function extension_owner_path(scope::JuliaProjectHarnessScope, extension_name::A
     joinpath(scope.project_root, "ext", "$(extension_name).jl")
 end
 
-function verification_targets_summary(scope::JuliaProjectHarnessScope)
+function verification_targets_summary(scope::AspJuliaWorkspaceScope)
     isempty(scope.targets) && return ""
     parts = ["$(name)=$(join(values, ","))" for (name, values) in sort(collect(scope.targets); by=first)]
     join(parts, ";")
@@ -309,22 +309,22 @@ function verification_fingerprint(parts::AbstractString...)
     join((compact_fingerprint_part(part) for part in parts), ":")
 end
 
-function verification_scope_fingerprint(scope::JuliaProjectHarnessScope)
+function verification_scope_fingerprint(scope::AspJuliaWorkspaceScope)
     !isnothing(scope.package_uuid) && return scope.package_uuid
     !isnothing(scope.package_name) && return scope.package_name
     basename(scope.project_root)
 end
 
 function verification_owner_fingerprint_part(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     owner_path::AbstractString,
 )
-    relative_path = relpath(owner_path, scope.project_root)
-    parts = splitpath(relative_path)
-    if !isabspath(relative_path) && (isempty(parts) || first(parts) != "..")
-        return slash_path(relative_path)
-    end
-    slash_path(owner_path)
+    root = normpath(scope.project_root)
+    owner = normpath(String(owner_path))
+    owner == root && return "."
+    prefix = root * string(Base.Filesystem.path_separator)
+    startswith(owner, prefix) || return slash_path(owner)
+    slash_path(String(SubString(owner, nextind(owner, lastindex(prefix)))))
 end
 
 function compact_fingerprint_part(part::AbstractString)
@@ -332,7 +332,7 @@ function compact_fingerprint_part(part::AbstractString)
 end
 
 """Render verification tasks as compact text for agent execution."""
-function render_julia_verification_task_index(index::JuliaVerificationTaskIndex)
+function render_asp_julia_verification_task_index(index::JuliaVerificationTaskIndex)
     isempty(index.records) && return "[ok] julia verification tasks no-records\n"
     lines = ["VerificationTasks: count=$(length(index.records))"]
     for record in index.records
@@ -367,8 +367,8 @@ function shell_quote_arg(arg::AbstractString)
 end
 
 """Render verification tasks as JSON while preserving raw argv vectors."""
-function render_julia_verification_task_index_json(index::JuliaVerificationTaskIndex)
-    JSON3.write(verification_task_index_dict(index))
+function render_asp_julia_verification_task_index_json(index::JuliaVerificationTaskIndex)
+    JSON.json(verification_task_index_dict(index))
 end
 
 function verification_task_index_dict(index::JuliaVerificationTaskIndex)

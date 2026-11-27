@@ -6,7 +6,7 @@ function julia_flow_lite_project_result(
     where::Dict{String,String},
 )
     root = abspath(String(project_root))
-    config = project_toml_harness_config(root, default_julia_harness_config())
+    config = asp_julia_project_config(root, default_asp_julia_config())
     files = discover_julia_files([root], config)
     scanned_functions = 0
     best_partial = nothing
@@ -227,7 +227,7 @@ function julia_flow_lite_packet(
         "protocolId" => "agent.semantic-protocols.semantic-language",
         "protocolVersion" => "1",
         "languageId" => "julia",
-        "providerId" => "julia-lang-project-harness",
+        "providerId" => "asp-julia",
         "projectRoot" => abspath(String(project_root)),
         "packageName" => basename(abspath(String(project_root))),
         "flowId" => "flow-lite:julia:$(where["scope.fn"]):$(where["source.call"]):$(where["sink.constructs"])",

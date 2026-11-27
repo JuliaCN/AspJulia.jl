@@ -25,7 +25,7 @@ const JULIA_VERIFICATION_ADVICE_EVIDENCE_KEYS = [
 ]
 
 """Render non-blocking pending verification work for agent-facing test logs."""
-function render_julia_verification_pending_advice(profile::JuliaVerificationProfile)
+function render_asp_julia_verification_pending_advice(profile::JuliaVerificationProfile)
     records = pending_agent_verification_tasks(profile)
     isempty(records) && return ""
     lines = ["[verify-advice] pending=$(length(records))"]

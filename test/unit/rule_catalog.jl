@@ -1,5 +1,5 @@
 @testset "rule catalog" begin
-    descriptors = julia_rule_pack_descriptors()
+    descriptors = asp_julia_rule_pack_descriptors()
     @test [descriptor.id for descriptor in descriptors] == [
         "julia.syntax",
         "julia.project_policy",
@@ -13,11 +13,11 @@
         :advisory,
     ]
 
-    syntax_rules = julia_syntax_rules()
+    syntax_rules = asp_julia_syntax_rules()
     @test length(syntax_rules) == 1
     @test only(syntax_rules).rule_id == "JULIA-SYN-R001"
-    @test only(syntax_rules).severity == JuliaLangProjectHarness.Error
-    @test [rule.rule_id for rule in julia_project_policy_rules()] == [
+    @test only(syntax_rules).severity == AspJulia.Error
+    @test [rule.rule_id for rule in asp_julia_package_policy_rules()] == [
         "JULIA-AGENT-PROJECT-001",
         "JULIA-AGENT-PROJECT-002",
         "JULIA-AGENT-PROJECT-003",
@@ -33,7 +33,7 @@
         "JULIA-AGENT-PROJECT-013",
         "JULIA-AGENT-PROJECT-014",
     ]
-    @test [rule.rule_id for rule in julia_modularity_rules()] == [
+    @test [rule.rule_id for rule in asp_julia_modularity_rules()] == [
         "JULIA-MOD-R001",
         "JULIA-MOD-R002",
         "JULIA-MOD-R003",
@@ -42,7 +42,7 @@
         "JULIA-MOD-R006",
         "JULIA-MOD-R007",
     ]
-    @test [rule.rule_id for rule in julia_agent_policy_rules()] == [
+    @test [rule.rule_id for rule in asp_julia_agent_policy_rules()] == [
         "AGENT-JL-R001",
         "AGENT-JL-R002",
         "AGENT-JL-R003",
@@ -78,12 +78,12 @@
 end
 
 @testset "self apply public api" begin
-    @test isdefined(JuliaLangProjectHarness, :assert_julia_project_harness_pkg_test_clean)
-    @test isdefined(JuliaLangProjectHarness, :assert_julia_project_harness_test_profile_clean)
-    @test isdefined(JuliaLangProjectHarness, :build_julia_project_verification_profile)
-    @test isdefined(JuliaLangProjectHarness, :build_julia_verification_profile_index)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_project_harness_agent_snapshot)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_verification_pending_advice)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_verification_profile)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_verification_profile_index)
+    @test isdefined(AspJulia, :assert_asp_julia_pkg_test_clean)
+    @test isdefined(AspJulia, :assert_asp_julia_test_profile_clean)
+    @test isdefined(AspJulia, :build_asp_julia_verification_profile)
+    @test isdefined(AspJulia, :build_asp_julia_verification_profile_index)
+    @test isdefined(AspJulia, :render_asp_julia_agent_snapshot)
+    @test isdefined(AspJulia, :render_asp_julia_verification_pending_advice)
+    @test isdefined(AspJulia, :render_asp_julia_verification_profile)
+    @test isdefined(AspJulia, :render_asp_julia_verification_profile_index)
 end

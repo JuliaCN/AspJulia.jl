@@ -53,10 +53,10 @@
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R020", rendered)
     @test occursin("AGENT-JL-R004", rendered)
 end
@@ -116,14 +116,14 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R022"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R020", rendered)
     @test occursin("AGENT-JL-R022", rendered)
     @test occursin("Moshi domain model lacks a match bridge", rendered)
@@ -193,10 +193,10 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R020", rendered)
     @test !occursin("AGENT-JL-R022", rendered)
 end
@@ -262,14 +262,14 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R022"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !occursin("AGENT-JL-R020", rendered)
     @test occursin("AGENT-JL-R022", rendered)
     @test finding.labels["moshi_model_targets"] == "Mode"
@@ -331,14 +331,14 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R020"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("Branch literals: fast, safe", rendered)
     @test finding.labels["stringly_branch_literals"] == "fast,safe"
     @test finding.labels["moshi_model_coverage"] == "missing=fast,safe"
@@ -395,14 +395,14 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R020"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("add Moshi @data/@match domain modeling", rendered)
     @test occursin("config as the model", rendered)
     @test finding.labels["moshi_extension_state"] == "extension_without_model"

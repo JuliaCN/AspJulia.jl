@@ -25,7 +25,7 @@ const JULIA_VERIFICATION_TASKS_BY_RESPONSIBILITY = Dict(
     "availability_critical" => ["pkg_test", "chaos"],
 )
 
-const JULIA_HARNESS_ONLY_DEPENDENCY_ROOTS = Set(["JuliaLangProjectHarness"])
+const ASP_JULIA_ONLY_DEPENDENCY_ROOTS = Set(["AspJulia"])
 const JULIA_NETWORK_ROOTS = Set(["Downloads", "HTTP", "LibCURL", "Sockets", "URIs"])
 const JULIA_PERSISTENCE_ROOTS = Set([
     "Arrow",
@@ -35,7 +35,7 @@ const JULIA_PERSISTENCE_ROOTS = Set([
     "HDF5",
     "JLD2",
     "JSON",
-    "JSON3",
+    "JSON",
     "LibPQ",
     "ODBC",
     "Parquet",
@@ -110,7 +110,7 @@ Base.@kwdef mutable struct JuliaVerificationResponsibilitySignals
 end
 
 function project_responsibility_profile_candidate(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     signals = julia_verification_responsibility_signals(scope, parsed_files)
@@ -127,7 +127,7 @@ function project_responsibility_profile_candidate(
 end
 
 function julia_verification_responsibility_signals(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed_files::Vector{ParsedJuliaFile},
 )
     signals = JuliaVerificationResponsibilitySignals()
@@ -148,12 +148,12 @@ function julia_verification_responsibility_signals(
 end
 
 function runtime_direct_dependency_roots(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     stdlib_roots::Set{String},
 )
     Set(
         root for root in keys(scope.direct_dependencies) if
-        !(root in stdlib_roots) && !(root in JULIA_HARNESS_ONLY_DEPENDENCY_ROOTS)
+        !(root in stdlib_roots) && !(root in ASP_JULIA_ONLY_DEPENDENCY_ROOTS)
     )
 end
 
@@ -165,7 +165,7 @@ function collect_import_responsibility_signals!(
     for imported in parsed.syntax_facts.imports
         is_relative_import(imported) && continue
         root = imported.root
-        if root in direct_roots && !(root in JULIA_HARNESS_ONLY_DEPENDENCY_ROOTS)
+        if root in direct_roots && !(root in ASP_JULIA_ONLY_DEPENDENCY_ROOTS)
             push!(signals.imported_dependency_roots, root)
         end
         add_julia_dependency_root_signal!(signals, root)
@@ -190,7 +190,7 @@ end
 
 function collect_algorithm_shape_responsibility_signals!(
     signals::JuliaVerificationResponsibilitySignals,
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
 )
     is_test_path(scope, parsed.report.path) && return signals
@@ -218,7 +218,7 @@ function algorithm_shape_labels(function_fact::JuliaFunctionSyntax)
 end
 
 function algorithm_shape_owner_label(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     parsed::ParsedJuliaFile,
     function_fact::JuliaFunctionSyntax,
     labels::Vector{String},

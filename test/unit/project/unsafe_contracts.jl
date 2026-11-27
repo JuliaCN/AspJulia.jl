@@ -17,10 +17,10 @@
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R017", rendered)
     @test occursin("Unsafe construct lacks an evidence contract", rendered)
     @test occursin("external process", rendered)
@@ -28,7 +28,7 @@
     @test occursin("`@inbounds`", rendered)
     @test count(
         finding -> finding.rule_id == "AGENT-JL-R017",
-        JuliaLangProjectHarness.advisory_findings(report),
+        AspJulia.advisory_findings(report),
     ) == 3
 end
 
@@ -55,14 +55,14 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
-    rendered = render_julia_project_harness(report)
+    report = run_asp_julia_workspace(root)
+    rendered = render_asp_julia_report(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R030", rendered)
     @test occursin("Public unsafe evidence contract lacks a test", rendered)
     @test occursin("documents unsafe or performance evidence for @inbounds, ccall, run", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts unsafe construct evidence contract test" begin
@@ -100,8 +100,8 @@ end
         """,
     )
 
-    report = run_julia_project_harness(root)
+    report = run_asp_julia_workspace(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end

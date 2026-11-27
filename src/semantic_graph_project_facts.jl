@@ -137,7 +137,7 @@ end
 function julia_semantic_graph_test_facts(root::AbstractString)
     test_root = joinpath(String(root), "test")
     isdir(test_root) || return Dict{String,Any}[]
-    config = default_julia_harness_config()
+    config = default_asp_julia_config()
     facts = Dict{String,Any}[]
     for path in discover_julia_files([test_root], config)
         parsed = parse_julia_file(path)

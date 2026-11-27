@@ -6,12 +6,12 @@ const MOSHI_EXTENSION_CAPABILITY_LINES = [
 
 """Return compact capability lines from the optional Moshi package extension."""
 function moshi_extension_capabilities()
-    extension_module = Base.get_extension(@__MODULE__, :JuliaLangProjectHarnessMoshiExt)
+    extension_module = Base.get_extension(@__MODULE__, :AspJuliaMoshiExt)
     isnothing(extension_module) && return String[]
     extension_module.moshi_extension_capability_lines()
 end
 
-function moshi_extension_snapshot_lines(scope::JuliaProjectHarnessScope)
+function moshi_extension_snapshot_lines(scope::AspJuliaWorkspaceScope)
     [
         "- extension=$(extension_name) weakdeps=$(join(dependencies, ",")) " *
         "activation=$(extension_activation_state(scope, dependencies)) " *
@@ -20,7 +20,7 @@ function moshi_extension_snapshot_lines(scope::JuliaProjectHarnessScope)
     ]
 end
 
-function moshi_extension_search_entries(scope::JuliaProjectHarnessScope)
+function moshi_extension_search_entries(scope::AspJuliaWorkspaceScope)
     [
         JuliaSearchIndexEntry(
             SourceLocation(scope.project_toml_path, 1, 0),
@@ -41,7 +41,7 @@ function moshi_extension_search_entries(scope::JuliaProjectHarnessScope)
     ]
 end
 
-function moshi_optional_extension_entries(scope::JuliaProjectHarnessScope)
+function moshi_optional_extension_entries(scope::AspJuliaWorkspaceScope)
     haskey(scope.weak_dependencies, "Moshi") || return Pair{String,Vector{String}}[]
     [
         Pair(extension_name, dependencies)
@@ -51,7 +51,7 @@ function moshi_optional_extension_entries(scope::JuliaProjectHarnessScope)
 end
 
 function moshi_extension_capability_evidence(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     extension_name::AbstractString,
     dependencies::Vector{String},
 )
@@ -64,7 +64,7 @@ function moshi_extension_capability_evidence(
 end
 
 function moshi_extension_search_detail(
-    scope::JuliaProjectHarnessScope,
+    scope::AspJuliaWorkspaceScope,
     dependencies::Vector{String},
 )
     "Moshi optional extension weakdeps=$(join(dependencies, ",")) " *
