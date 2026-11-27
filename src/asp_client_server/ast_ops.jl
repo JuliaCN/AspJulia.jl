@@ -67,16 +67,51 @@ function _julia_byte_span(node::JuliaSyntax.SyntaxNode)::Dict{String,Any}
     return Dict{String,Any}("start" => start_byte, "end" => end_byte)
 end
 
+function _julia_collect_exports!(node::JuliaSyntax.SyntaxNode, exported::Set{String})
+    k = string(JuliaSyntax.kind(node))
+    children = JuliaSyntax.children(node)
+    children === nothing && return
+    if k == "export"
+        for child in children
+            if string(JuliaSyntax.kind(child)) == "Identifier"
+                push!(exported, string(child.val))
+            end
+        end
+        return
+    end
+    for child in children
+        _julia_collect_exports!(child, exported)
+    end
+end
+
+function _julia_extract_supertype(node::JuliaSyntax.SyntaxNode)::Union{Nothing,String}
+    children = JuliaSyntax.children(node)
+    children === nothing && return nothing
+    for child in children
+        ck = string(JuliaSyntax.kind(child))
+        if ck == "<:"
+            sub = JuliaSyntax.children(child)
+            if sub !== nothing && length(sub) >= 2
+                sup = _julia_signature_name(sub[2])
+                !isempty(sup) && return sup
+            end
+        end
+    end
+    return nothing
+end
+
 function _julia_collect_ast_nodes!(
     path::String,
     parent::Union{Nothing,String},
     node::JuliaSyntax.SyntaxNode,
+    exported::Set{String},
     out::Vector{Dict{String,Any}},
+    edges::Vector{Dict{String,Any}},
 )
     k = string(JuliaSyntax.kind(node))
     if k in ("toplevel", "block")
         for child in JuliaSyntax.children(node)
-            _julia_collect_ast_nodes!(path, parent, child, out)
+            _julia_collect_ast_nodes!(path, parent, child, exported, out, edges)
         end
         return
     end
@@ -104,6 +139,46 @@ function _julia_collect_ast_nodes!(
         end
         locator = isnothing(parent) ? "$(path)#$(tag):$(name)" : "$(parent)#$(tag):$(name)"
         span = _julia_byte_span(node)
+        attrs = Any[]
+        if name in exported
+            push!(attrs, Dict{String,Any}("key" => "exported", "value" => "true"))
+            push!(attrs, Dict{String,Any}("key" => "visibility", "value" => "export"))
+        end
+        if k == "struct"
+            if JuliaSyntax.has_flags(node, JuliaSyntax.MUTABLE_FLAG)
+                push!(attrs, Dict{String,Any}("key" => "mutable", "value" => "true"))
+            end
+        end
+        if k in ("struct", "abstract")
+            sup = _julia_extract_supertype(node)
+            if sup !== nothing
+                push!(attrs, Dict{String,Any}("key" => "implements", "value" => sup))
+                push!(
+                    edges,
+                    Dict{String,Any}(
+                        "src" => locator,
+                        "dst" => sup,
+                        "relation" => "implements",
+                        "line" => line,
+                    ),
+                )
+            end
+        elseif k in ("using", "import")
+            for child in JuliaSyntax.children(node)
+                imp = _julia_signature_name(child)
+                if !isempty(imp)
+                    push!(
+                        edges,
+                        Dict{String,Any}(
+                            "src" => path,
+                            "dst" => imp,
+                            "relation" => "imports",
+                            "line" => line,
+                        ),
+                    )
+                end
+            end
+        end
         record = Dict{String,Any}(
             "locator" => locator,
             "kind" => univ_kind,
@@ -112,7 +187,7 @@ function _julia_collect_ast_nodes!(
             "line" => line,
             "outerSpan" => span,
             "innerSpan" => span,
-            "attrs" => Any[],
+            "attrs" => attrs,
         )
         if !isnothing(parent)
             record["parent"] = parent
@@ -120,7 +195,7 @@ function _julia_collect_ast_nodes!(
         push!(out, record)
         if k == "module"
             for child in JuliaSyntax.children(node)
-                _julia_collect_ast_nodes!(path, locator, child, out)
+                _julia_collect_ast_nodes!(path, locator, child, exported, out, edges)
             end
         end
     end
@@ -168,11 +243,15 @@ function handle_julia_ast_inspect(payload::Dict{String,Any})::Dict{String,Any}
     source = string(get(payload, "sourceUtf8", ""))
     try
         root = JuliaSyntax.parseall(JuliaSyntax.SyntaxNode, source; filename=path)
+        exported = Set{String}()
+        _julia_collect_exports!(root, exported)
         nodes = Dict{String,Any}[]
-        _julia_collect_ast_nodes!(path, nothing, root, nodes)
+        edges = Dict{String,Any}[]
+        _julia_collect_ast_nodes!(path, nothing, root, exported, nodes, edges)
         return Dict{String,Any}(
             "accepted" => true,
             "nodes" => nodes,
+            "edges" => edges,
             "diagnostics" => Any[],
             "syntaxSurface" => JULIA_SYNTAX_SURFACE,
         )
@@ -190,6 +269,7 @@ function handle_julia_ast_inspect(payload::Dict{String,Any})::Dict{String,Any}
         return Dict{String,Any}(
             "accepted" => false,
             "nodes" => Any[],
+            "edges" => Any[],
             "diagnostics" => diags,
             "syntaxSurface" => JULIA_SYNTAX_SURFACE,
         )
